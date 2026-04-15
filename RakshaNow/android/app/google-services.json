@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "227878993539",
+    "project_id": "rakshanow-e6552",
+    "storage_bucket": "rakshanow-e6552.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:227878993539:android:3fc54e02c7933f3d3325b6",
+        "android_client_info": {
+          "package_name": "com.rakshanow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDc4AHHJxePi9ArucWxvqDVDXz-V4Ql8kM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
