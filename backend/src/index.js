@@ -8,11 +8,14 @@ const rateLimit = require('express-rate-limit');
 connectDB();
 
 const app = express();
-app.use(cors({
-    origin: ['http://localhost:5173', 'http://10.0.2.2:5554', 'http://localhost:5000', 'http://localhost:5554', 'http://10.0.2.2:3000'],
-    credentials: true 
-}));
+
+// ✅ CRUCIAL: Enable JSON parsing middleware
 app.use(express.json());
+
+app.use(cors({
+  origin: true,   // ✅ sab allow (RN + Postman + browser)
+  credentials: true
+}));
 
 // Rate Limiting
 const generalLimiter = rateLimit({

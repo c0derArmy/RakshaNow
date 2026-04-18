@@ -92,30 +92,6 @@ const AlertsScreen = ({ navigation }: any) => {
         </View>
 
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
-          <Icon name="home" size={24} color="#64748b" />
-          <Text style={styles.navText}>HOME</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('MyReports')}>
-          <Icon name="assignment" size={24} color="#64748b" />
-          <Text style={styles.navText}>REPORTS</Text>
-        </TouchableOpacity>
-
-        {/* Active Tab */}
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-          <Icon name="notifications" size={24} color="#ffb3ac" />
-          <Text style={[styles.navText, styles.navTextActive]}>ALERTS</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Profile')}>
-          <Icon name="account-circle" size={24} color="#64748b" />
-          <Text style={styles.navText}>PROFILE</Text>
-        </TouchableOpacity>
-      </View>
     </SafeAreaView>
   );
 };
@@ -126,7 +102,7 @@ const styles = StyleSheet.create({
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconButton: { padding: 4 },
   headerTitle: { fontSize: 20, fontWeight: '800', color: '#ffb3ac', letterSpacing: -0.5 },
-  scrollContainer: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 },
+  scrollContainer: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 40 },
   alertCard: { backgroundColor: '#1A2744', borderRadius: 16, padding: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.05)' },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.05)' },
   agencyRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -139,11 +115,6 @@ const styles = StyleSheet.create({
   alertDesc: { fontSize: 13, color: '#e4beba', lineHeight: 20 },
   endOfList: { alignItems: 'center', marginTop: 24, marginBottom: 24 },
   endOfListText: { fontSize: 11, fontWeight: '800', color: '#64748b', letterSpacing: 2 },
-  bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 70, backgroundColor: '#132030', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', paddingHorizontal: 8, shadowColor: '#0d1b2a', shadowOffset: { width: 0, height: -12 }, shadowOpacity: 0.4, shadowRadius: 30, elevation: 20 },
-  navItem: { alignItems: 'center', justifyContent: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 16 },
-  navItemActive: { backgroundColor: '#1e2b3b' },
-  navText: { fontSize: 10, fontWeight: '800', marginTop: 4, color: '#64748b', letterSpacing: 1 },
-  navTextActive: { color: '#ffb3ac' },
 });
 
 export default AlertsScreen;

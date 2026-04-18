@@ -23,7 +23,7 @@ const VoiceReportScreen = ({ navigation }: any) => {
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
       {/* Top Header */}
-      {/* <View style={styles.header}>
+      <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity 
             onPress={() => navigation.goBack()} 
@@ -34,10 +34,7 @@ const VoiceReportScreen = ({ navigation }: any) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Voice Report</Text>
         </View>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-          <Icon name="more-vert" size={24} color="#ffb3ac" />
-        </TouchableOpacity>
-      </View> */}
+      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
@@ -129,30 +126,6 @@ const VoiceReportScreen = ({ navigation }: any) => {
         </TouchableOpacity>
 
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
-          <Icon name="health-and-safety" size={24} color="#64748b" />
-          <Text style={styles.navText}>HOME</Text>
-        </TouchableOpacity>
-
-        {/* Active Tab */}
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-          <Icon name="assignment" size={24} color="#ffb3ac" />
-          <Text style={[styles.navText, styles.navTextActive]}>REPORTS</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="notifications" size={24} color="#64748b" />
-          <Text style={styles.navText}>ALERTS</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="account-circle" size={24} color="#64748b" />
-          <Text style={styles.navText}>PROFILE</Text>
-        </TouchableOpacity>
-      </View>
       
     </SafeAreaView>
   );
@@ -190,7 +163,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 100, // Room for bottom nav
+    paddingBottom: 40, // Room for bottom nav
   },
   gpsBar: {
     flexDirection: 'row',
@@ -211,10 +184,34 @@ const styles = StyleSheet.create({
   gpsTextContainer: {
     flex: 1,
   },
-  gpsLabel: {
-    fontSize: 10,
+  header: {
+    height: 52 + STATUSBAR_HEIGHT,
+    paddingTop: STATUSBAR_HEIGHT,
+    backgroundColor: '#132030',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    zIndex: 50,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
     fontWeight: '800',
-    color: '#94a3b8',
+    color: '#ffb3ac',
+    letterSpacing: -0.5,
+  },
+  scrollContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 40,
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 2,
@@ -375,49 +372,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
+    marginBottom: 40,
   },
   submitText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: 1,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 70,
-    backgroundColor: '#132030',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    shadowColor: '#0d1b2a',
-    shadowOffset: { width: 0, height: -12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 30,
-    elevation: 20,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-  },
-  navItemActive: {
-    backgroundColor: '#1e2b3b',
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '800',
-    marginTop: 4,
-    color: '#64748b',
-    letterSpacing: 1,
-  },
-  navTextActive: {
-    color: '#ffb3ac',
   },
 });
 

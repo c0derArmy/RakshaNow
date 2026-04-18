@@ -4,6 +4,9 @@ import { AppDispatch } from '../index';
 
 interface MedicalID {
   userId: string;
+  bloodType: string;
+  allergies: string[];
+  medications: string[];
 }
 
 interface MedicalIDState {

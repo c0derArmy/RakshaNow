@@ -131,30 +131,6 @@ const MyReportsScreen = ({ navigation }: any) => {
         </View>
 
       </ScrollView>
-
-      {/* Bottom Navigation (Reports Active) */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate('Home')}>
-          <Icon name="health-and-safety" size={24} color="#64748b" />
-          <Text style={styles.navText}>HOME</Text>
-        </TouchableOpacity>
-
-        {/* Active Tab */}
-        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
-          <Icon name="assignment" size={24} color="#ffb3ac" />
-          <Text style={[styles.navText, styles.navTextActive]}>REPORTS</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="notifications" size={24} color="#64748b" />
-          <Text style={styles.navText}>ALERTS</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Icon name="account-circle" size={24} color="#64748b" />
-          <Text style={styles.navText}>PROFILE</Text>
-        </TouchableOpacity>
-      </View>
       
     </SafeAreaView>
   );
@@ -192,7 +168,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom: 120, // Extra padding for bottom nav
+    paddingBottom: 40,
   },
   card: {
     backgroundColor: '#1A2744',
@@ -311,43 +287,6 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: '#283646',
     borderRadius: 2,
-  },
-  bottomNav: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: 70,
-    backgroundColor: '#132030',
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    shadowColor: '#0d1b2a',
-    shadowOffset: { width: 0, height: -12 },
-    shadowOpacity: 0.4,
-    shadowRadius: 30,
-    elevation: 20,
-  },
-  navItem: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 16,
-  },
-  navItemActive: {
-    backgroundColor: '#1e2b3b',
-  },
-  navText: {
-    fontSize: 10,
-    fontWeight: '800',
-    marginTop: 4,
-    color: '#64748b',
-    letterSpacing: 1,
-  },
-  navTextActive: {
-    color: '#ffb3ac',
   },
 });
 

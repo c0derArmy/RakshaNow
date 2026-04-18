@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   StatusBar,
   ScrollView,
   TouchableOpacity,
@@ -11,6 +10,7 @@ import {
   ImageBackground,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     paddingTop: 0,
-    paddingBottom: 100, // Space for bottom nav
+    paddingBottom: 40, // Space for bottom nav
     paddingHorizontal: 24,
   },
   separator: {

@@ -15,7 +15,43 @@ interface IncidentState {
 }
 
 const initialState: IncidentState = {
-  incidents: [],
+  incidents: [
+    {
+      id: '1',
+      type: 'Medical Emergency',
+      description: 'Heart attack symptoms, difficulty breathing',
+      location: '123 Main St, Springfield',
+      timestamp: '2024-04-15 14:30:00',
+    },
+    {
+      id: '2',
+      type: 'Accident',
+      description: 'Car collision on highway, 2 vehicles involved',
+      location: 'Highway 101, Mile Marker 45',
+      timestamp: '2024-04-14 09:15:00',
+    },
+    {
+      id: '3',
+      type: 'Fall',
+      description: 'Elderly person fell at home, possible fracture',
+      location: '456 Oak Ave, Springfield',
+      timestamp: '2024-04-13 16:45:00',
+    },
+    {
+      id: '4',
+      type: 'Unconscious',
+      description: 'Person found unconscious in public area',
+      location: 'City Park, Main Entrance',
+      timestamp: '2024-04-12 11:20:00',
+    },
+    {
+      id: '5',
+      type: 'Severe Allergic Reaction',
+      description: 'Anaphylaxis, breathing difficulty',
+      location: '789 Pine Rd, Springfield',
+      timestamp: '2024-04-11 13:05:00',
+    },
+  ],
 };
 
 const incidentSlice = createSlice({

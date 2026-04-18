@@ -22,10 +22,10 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#061423" translucent={true} />
+      <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
       {/* Top Header */}
-      {/* <View style={styles.header}>
+      <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity 
             onPress={() => navigation.goBack()} 
@@ -36,10 +36,7 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Report Emergency</Text>
         </View>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-          <Icon name="more-vert" size={24} color="#ffb3ac" />
-        </TouchableOpacity>
-      </View> */}
+      </View>
 
       <KeyboardAvoidingView 
         style={styles.keyboardAvoid} 
@@ -121,33 +118,26 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
               <Text style={styles.featureCardText}>Auto-Broadcasting Activated</Text>
             </View>
           </View>
+
+          {/* Submit Button */}
+          <TouchableOpacity 
+            style={styles.submitButtonContainer} 
+            activeOpacity={0.8}
+            onPress={() => navigation.replace('Confirmation')}
+          >
+            <LinearGradient
+              colors={['#ffb3ac', '#d32f2f']}
+              style={styles.submitButton}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <Text style={styles.submitButtonText}>Submit Report</Text>
+              <Icon name="arrow-forward" size={20} color="#fff2f0" />
+            </LinearGradient>
+          </TouchableOpacity>
           
         </ScrollView>
       </KeyboardAvoidingView>
-
-      {/* Fixed Bottom Action Button */}
-      <View style={styles.bottomActionArea}>
-        {/* Simulates the gradient fade from the HTML */}
-        <LinearGradient
-          colors={['rgba(6, 20, 35, 0)', 'rgba(6, 20, 35, 0.9)', '#061423']}
-          style={styles.bottomGradient}
-        />
-        <TouchableOpacity 
-          style={styles.submitButtonContainer} 
-          activeOpacity={0.8}
-          onPress={() => navigation.replace('Confirmation')}
-        >
-          <LinearGradient
-            colors={['#ffb3ac', '#d32f2f']}
-            style={styles.submitButton}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Text style={styles.submitButtonText}>Submit Report</Text>
-            <Icon name="arrow-forward" size={20} color="#fff2f0" />
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
       
     </SafeAreaView>
   );
@@ -164,7 +154,7 @@ const styles = StyleSheet.create({
   header: {
     height: 52 + STATUSBAR_HEIGHT,
     paddingTop: STATUSBAR_HEIGHT,
-    backgroundColor: '#061423',
+    backgroundColor: '#132030',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -180,15 +170,15 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '800',
     color: '#ffb3ac',
     letterSpacing: -0.5,
   },
   scrollContainer: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 120, // Extra padding so scroll clears the fixed bottom button
+    paddingTop: 24,
+    paddingBottom: 40,
   },
   gpsBar: {
     flexDirection: 'row',
@@ -347,6 +337,7 @@ const styles = StyleSheet.create({
   cardsRow: {
     flexDirection: 'row',
     gap: 16,
+    marginBottom: 32,
   },
   featureCard: {
     flex: 1,
@@ -364,32 +355,17 @@ const styles = StyleSheet.create({
     color: '#d6e4f9',
     lineHeight: 16,
   },
-  bottomActionArea: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 24,
-    paddingTop: 40,
-  },
-  bottomGradient: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: -1,
-  },
   submitButtonContainer: {
     shadowColor: '#d32f2f',
-    shadowOffset: { width: 0, height: 8 },
+    shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.3,
-    shadowRadius: 15,
-    elevation: 8,
+    shadowRadius: 20,
+    elevation: 10,
+    marginTop: 24,
+    marginBottom: 20,
   },
   submitButton: {
-    height: 52,
+    height: 56,
     borderRadius: 16,
     flexDirection: 'row',
     alignItems: 'center',

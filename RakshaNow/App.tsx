@@ -22,6 +22,7 @@ import { Provider } from 'react-redux';
 import store from './src/store';
 
 
+
 // Define our stack
 const Stack = createNativeStackNavigator();
 
@@ -125,8 +126,7 @@ const App = () => {
             name="Responder Dashboard"
             component={ResponderDashboardScreen}
             options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
+              headerShown: false,
             }}
           />
 
@@ -134,48 +134,42 @@ const App = () => {
             name="Profile"
             component={ProfileScreen}
             options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
+              headerShown: false,
             }}
           />
           <Stack.Screen
             name="Alerts"
             component={AlertsScreen}
             options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
+              headerShown: false,
             }}
           />
          <Stack.Screen
             name="Emergency Contacts"
             component={EmergencyContactsScreen}
             options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
+              headerShown: false,
             }}
           />
           <Stack.Screen
             name="MedicalID"
             component={MedicalIDScreen}
             options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
+              headerShown: false,
             }}
           />
           <Stack.Screen
             name="Incident History"
             component={IncidentHistoryScreen}
             options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
+              headerShown: false,
             }}
           /> 
           <Stack.Screen
             name="How It Works"
             component={HowItWorksScreen}
             options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
+              headerShown: false,
             }}
           />
        

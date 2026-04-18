@@ -9,15 +9,21 @@ const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 
 
 const MedicalIDScreen = () => {
   const dispatch = useDispatch();
-  const medicalID = useSelector((state: RootState) => state.medicalID);
+  const medicalIDState = useSelector((state: RootState) => state.medicalId);
+  const medicalID = medicalIDState.medicalID;
 
-  const [bloodType, setBloodType] = useState(medicalID.bloodType);
-  const [allergies, setAllergies] = useState(medicalID.allergies.join(', '));
-  const [medications, setMedications] = useState(medicalID.medications.join(', '));
+  const [bloodType, setBloodType] = useState(medicalID?.bloodType || '');
+  const [allergies, setAllergies] = useState(medicalID?.allergies?.join(', ') || '');
+  const [medications, setMedications] = useState(medicalID?.medications?.join(', ') || '');
 
   const handleSave = () => {
+    if (!medicalID?.userId) {
+      Alert.alert('Error', 'User ID not found');
+      return;
+    }
+
     const updatedMedicalID = {
-      ...medicalID,
+      userId: medicalID.userId,
       bloodType,
       allergies: allergies.split(',').map((a: string): string => a.trim()),
       medications: medications.split(',').map((m: string): string => m.trim()),
@@ -101,7 +107,7 @@ const styles = StyleSheet.create({
   header: { height: 52 + STATUSBAR_HEIGHT, paddingTop: STATUSBAR_HEIGHT, backgroundColor: '#132030', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
   iconButton: { padding: 4 },
   headerTitle: { fontSize: 20, fontWeight: '800', color: '#ffb3ac' },
-  scrollContainer: { padding: 20 },
+  scrollContainer: { padding: 20, paddingBottom: 40 },
   bloodGroupCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#1A2744', padding: 24, borderRadius: 16, marginBottom: 16, borderWidth: 1, borderColor: 'rgba(211, 47, 47, 0.2)' },
   bloodGroupInfo: { marginLeft: 16 },
   label: { fontSize: 10, fontWeight: '800', color: '#94a3b8', letterSpacing: 1.5, marginBottom: 4 },
@@ -111,10 +117,12 @@ const styles = StyleSheet.create({
   detailLabel: { fontSize: 10, fontWeight: '800', color: '#64748b', letterSpacing: 1.5, marginBottom: 8 },
   detailValue: { fontSize: 16, fontWeight: '600', color: '#e4beba' },
   divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.05)', marginVertical: 8 },
-  inputSection: { padding: 20 },
-  input: { height: 40, borderWidth: 1, borderColor: 'rgba(211, 47, 47, 0.2)', borderRadius: 8 },
-  saveButton: { padding: 10, backgroundColor: '#d32f2f', borderRadius: 8 },
-  saveButtonText: { fontSize: 16, fontWeight: '800', color: '#ffffff' },
+  inputSection: { padding: 20, marginBottom: 20 },
+  input: { height: 44, borderWidth: 1, borderColor: 'rgba(211, 47, 47, 0.3)', borderRadius: 8, paddingHorizontal: 12, color: '#d6e4f9', marginBottom: 16, backgroundColor: '#132030' },
+  saveButton: { padding: 14, backgroundColor: '#d32f2f', borderRadius: 8, alignItems: 'center', marginTop: 8 },
+  saveButtonText: { fontSize: 16, fontWeight: '800', color: '#ffffff', letterSpacing: 1 },
 });
 
 export default MedicalIDScreen;
+
+

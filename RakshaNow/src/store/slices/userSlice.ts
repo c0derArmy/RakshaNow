@@ -33,10 +33,20 @@ export const loginUser = (credentials: {
 
     dispatch(setUser(response.data));
 
-    return response.data;   // ⭐ add this line
-
+    return response.data;
   } catch (error: any) {
     console.log("LOGIN ERROR:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const googleLogin = (idToken: string) => async (dispatch: AppDispatch) => {
+  try {
+    const response = await axiosClient.post('/auth/google-login', { idToken });
+    dispatch(setUser(response.data));
+    return response.data;
+  } catch (error: any) {
+    console.log('GOOGLE LOGIN ERROR:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -51,8 +61,10 @@ export const registerUser = (userData: {
   try {
     const response = await axiosClient.post('/auth/register', userData);
     dispatch(setUser(response.data));
+    return response.data; // ✅ Add this to return the response data
   } catch (error) {
     console.error('Registration failed:', error);
+    throw error; // ✅ Re-throw error so it can be caught in the component
   }
 };
 

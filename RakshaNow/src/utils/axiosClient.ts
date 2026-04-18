@@ -1,20 +1,20 @@
-import axios from "axios";
-import { Platform } from "react-native";
+// import axios from "axios";
+// import { Platform } from "react-native";
 
-const axiosClient = axios.create({
-  baseURL:
-    Platform.OS === "android"
-      ? "http://10.0.2.2:5000/api"   // Android emulator
-      : "http://localhost:5000/api", // iOS / web
+// const axiosClient = axios.create({
+//   baseURL:
+//     Platform.OS === "android"
+//       ? "http://10.0.2.2:5000/api"   // Android emulator
+//       : "http://localhost:5000/api", // iOS / web
 
-  withCredentials: true,
+//   withCredentials: true,
 
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+//   headers: {
+//     "Content-Type": "application/json",
+//   },
+// });
 
-export default axiosClient;
+// export default axiosClient;
 
 
 // import axios from "axios";
@@ -32,3 +32,21 @@ export default axiosClient;
 // });
 
 // export default axiosClient;
+
+
+
+import axios from "axios";
+
+// Using localhost for all environments.
+// For Physical Android devices via USB, ADB Reverse covers localhost natively.
+const axiosClient = axios.create({
+  baseURL: "http://localhost:5000/api", // Resolves via ADB reverse on Android
+
+  headers: {
+    "Content-Type": "application/json",
+  },
+  
+  timeout: 10000,
+});
+
+export default axiosClient;
