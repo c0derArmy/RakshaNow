@@ -36,17 +36,34 @@
 
 
 import axios from "axios";
+import { Platform } from "react-native";
 
-// Using localhost for all environments.
-// For Physical Android devices via USB, ADB Reverse covers localhost natively.
+let authToken: string | null = null;
+
+/**
+ * Dedicated helper to inject token from Redux without causing circular imports
+ */
+export const setAuthToken = (token: string | null) => {
+  authToken = token;
+};
+
 const axiosClient = axios.create({
-  baseURL: "http://localhost:5000/api", // Resolves via ADB reverse on Android
-
+  // Use localhost for both iOS and Android (requires adb reverse on Android)
+  baseURL: Platform.OS === "android" ? "http://localhost:5000/api" : "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
-  
-  timeout: 10000,
+  timeout: 30000,
 });
+
+axiosClient.interceptors.request.use(
+  (config) => {
+    if (authToken) {
+      config.headers.Authorization = `Bearer ${authToken}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 export default axiosClient;

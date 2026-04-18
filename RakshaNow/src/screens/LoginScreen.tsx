@@ -78,17 +78,16 @@ const LoginScreen = ({ navigation }: any) => {
 
 
     } catch (error: any) {
-
       setLoading(false);
+      
+      const errorMessage = error?.response?.data?.details || 
+                          error?.response?.data?.message || 
+                          (error.message === "Network Error" 
+                            ? "Network Error: Please ensure backend is running and ADB reverse is configured." 
+                            : "Invalid phone or password");
 
-      Alert.alert(
-        "Login Failed",
-        error?.response?.data?.details || error?.response?.data?.message ||
-        "Invalid phone or password"
-      );
-
-      console.log("LOGIN ERROR:", error?.response?.data);
-
+      Alert.alert("Login Failed", errorMessage);
+      console.log("LOGIN ERROR:", error?.response?.data || error.message);
     }
 
   };

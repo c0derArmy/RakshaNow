@@ -49,6 +49,7 @@ exports.registerUser = async (req, res) => {
       phone,
       email,
       password: hashedPassword,
+      role: req.body.role || 'CITIZEN',
     });
 
     // Auto-create Medical ID
@@ -87,7 +88,7 @@ exports.loginUser = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.status(200).json({ token, user: { id: user._id, name: user.name } });
+    res.status(200).json({ token, user: { id: user._id, name: user.name, phone: user.phone, email: user.email } });
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ error: 'Login failed' });
@@ -128,8 +129,12 @@ exports.googleLogin = async (req, res) => {
         name: name,
         email: email,
         googleId: uid,
-        profilePic: picture
+        profilePic: picture,
+        role: 'CITIZEN' // Default for Google Login
       });
+
+      // ✅ Auto-create Medical ID for Google User
+      await MedicalID.create({ userId: user._id });
     }
 
     // generate JWT

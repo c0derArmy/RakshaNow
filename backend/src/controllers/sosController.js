@@ -27,13 +27,21 @@ exports.triggerSOS = async (req, res) => {
     const medicalInfo = await MedicalID.findOne({ userId: user._id });
 
     // 4. Trigger Twilio Dispatch
-    if (medicalInfo && medicalInfo.emergencyContacts.length > 0) {
+    if (medicalInfo && medicalInfo.emergencyContacts && medicalInfo.emergencyContacts.length > 0) {
+      // Don't await this to keep the SOS response fast
       dispatchAutomatedCalls(medicalInfo.emergencyContacts, user.name, aiAnalysis.classification);
     }
 
     res.status(200).json({ success: true, message: 'SOS Dispatched', incident: newIncident });
   } catch (error) {
-    console.error("SOS Error:", error);
-    res.status(500).json({ error: 'Failed to process SOS' });
+    console.error("🚨 CRITICAL SOS ERROR:", {
+      message: error.message,
+      stack: error.stack,
+      body: req.body
+    });
+    res.status(500).json({ 
+      error: 'Failed to process SOS',
+      details: error.message
+    });
   }
 };

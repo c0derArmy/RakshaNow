@@ -13,10 +13,38 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../store';
+import { triggerTacticalSOS } from '../store/slices/incidentSlice';
+import { Alert } from 'react-native';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const HomeScreen = ({ navigation }: any) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const user = useSelector((state: RootState) => state.user.user);
+
+  const handleQuickSOS = async () => {
+    Alert.alert(
+      'Quick SOS',
+      'Triggering immediate tactical emergency alert. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'CONFIRM', 
+          onPress: async () => {
+            try {
+              const incident = await dispatch(triggerTacticalSOS("QUICK SOS: IMMEDIATE ASSISTANCE REQUIRED"));
+              navigation.navigate('Confirmation', { incident });
+            } catch (error) {
+              Alert.alert('Error', 'Failed to trigger Quick SOS');
+            }
+          }
+        }
+      ]
+    );
+  };
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
@@ -43,7 +71,7 @@ const HomeScreen = ({ navigation }: any) => {
         {/* Greeting Section */}
         <View style={styles.greetingSection}>
           <View style={styles.greetingTextContainer}>
-            <Text style={styles.greetingText}>Good Morning, Rahul</Text>
+            <Text style={styles.greetingText}>Good Morning, {user?.name || 'User'}</Text>
             <View style={styles.gpsContainer}>
               <View style={styles.gpsDot} />
               <Text style={styles.gpsText}>GPS ACTIVE</Text>
@@ -54,7 +82,7 @@ const HomeScreen = ({ navigation }: any) => {
             onPress={() => navigation.navigate("Profile")}
           >
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80' }} // Placeholder matching the professional look
+              source={{ uri: user?.profilePic || 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80' }} 
               style={styles.profileImage}
             />
           </TouchableOpacity>
@@ -67,8 +95,10 @@ const HomeScreen = ({ navigation }: any) => {
           <View style={[styles.pulseRing, { width: 240, height: 240, borderColor: 'rgba(211,47,47,0.2)' }]} />
           <View style={[styles.pulseRing, { width: 190, height: 190, backgroundColor: 'rgba(211,47,47,0.05)', borderWidth: 0 }]} />
 
-          <TouchableOpacity activeOpacity={0.85}
+          <TouchableOpacity 
+            activeOpacity={0.85}
             onPress={() => navigation.navigate("Report Selection")}
+            onLongPress={handleQuickSOS}
           >
             <LinearGradient
               colors={['#d32f2f', '#ba1a20']}

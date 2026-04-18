@@ -1,14 +1,21 @@
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView, Platform, TouchableOpacity } from 'react-native';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { RootState } from '../../store';
+import { RootState, AppDispatch } from '../../store';
+import { fetchIncidents } from '../../store/slices/incidentSlice';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const IncidentHistoryScreen = () => {
   const navigation = useNavigation();
+  const dispatch = useDispatch<AppDispatch>();
   const incidents = useSelector((state: RootState) => state.incidents.incidents);
+
+  useEffect(() => {
+    dispatch(fetchIncidents());
+  }, [dispatch]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -23,22 +30,28 @@ const IncidentHistoryScreen = () => {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {incidents.length > 0 ? (
-          incidents.map((item: { id: string; type: string; timestamp: string; description: string; location: string }) => (
-            <View key={item.id} style={styles.historyCard}>
+          incidents.map((item: any, index: number) => (
+            <View key={item._id || index.toString()} style={styles.historyCard}>
               <View style={styles.cardContent}>
-                <Text style={styles.historyTitle}>{item.type}</Text>
-                <Text style={styles.description}>{item.description}</Text>
+                <Text style={styles.historyTitle}>{item.title || item.type || 'Emergency'}</Text>
+                <Text style={styles.description}>{item.desc || item.transcript || 'No description'}</Text>
                 <View style={styles.dateRow}>
                   <Icon name="location-on" size={14} color="#64748b" />
-                  <Text style={styles.historyDate}>{item.location}</Text>
+                  <Text style={styles.historyDate}>{item.landmark || item.location?.address || 'Unknown'}</Text>
                 </View>
                 <View style={styles.dateRow}>
                   <Icon name="event" size={14} color="#64748b" />
-                  <Text style={styles.historyDate}>{item.timestamp}</Text>
+                  <Text style={styles.historyDate}>{item.reportedAt ? new Date(item.reportedAt).toLocaleString() : 'N/A'}</Text>
                 </View>
               </View>
-              <View style={styles.statusBadge}>
-                <Text style={styles.statusText}>RESOLVED</Text>
+              <View style={[
+                styles.statusBadge, 
+                item.status === 'CRITICAL' && { backgroundColor: 'rgba(211,47,47,0.2)' }
+              ]}>
+                <Text style={[
+                  styles.statusText,
+                  item.status === 'CRITICAL' && { color: '#ffb3ac' }
+                ]}>{item.status || 'ACTIVE'}</Text>
               </View>
             </View>
           ))

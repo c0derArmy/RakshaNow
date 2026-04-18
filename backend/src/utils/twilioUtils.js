@@ -1,14 +1,23 @@
 const twilio = require('twilio');
 
 const dispatchAutomatedCalls = async (contacts, userName, incidentType) => {
-  const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  if (!process.env.TWILIO_PHONE_NUMBER) {
+    console.warn("⚠️ TWILIO_PHONE_NUMBER not configured. Skipping automated calls.");
+    return;
+  }
 
-  for (let contact of contacts) {
-    await client.calls.create({
-      twiml: `<Response><Say>Emergency Alert from RakshaNow. ${userName} has triggered a ${incidentType} SOS. Please check the app immediately for their live coordinates.</Say></Response>`,
-      to: contact.phone,
-      from: process.env.TWILIO_PHONE_NUMBER
-    });
+  try {
+    const client = new twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+
+    for (let contact of contacts) {
+      await client.calls.create({
+        twiml: `<Response><Say>Emergency Alert from RakshaNow. ${userName} has triggered a ${incidentType} SOS. Please check the app immediately for their live coordinates.</Say></Response>`,
+        to: contact.phone,
+        from: process.env.TWILIO_PHONE_NUMBER
+      });
+    }
+  } catch (error) {
+    console.error("Twilio Call Dispatch Failed:", error.message);
   }
 };
 

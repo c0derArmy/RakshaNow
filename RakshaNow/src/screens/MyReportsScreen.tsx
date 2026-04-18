@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -10,46 +10,25 @@ import {
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchIncidents } from '../store/slices/incidentSlice';
+import { RootState, AppDispatch } from '../store';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
-// Data array to render the reports dynamically
-const REPORT_DATA = [
-  {
-    id: '1',
-    title: 'Residential Fire Alert',
-    location: 'Bandra West, Mumbai',
-    status: 'CRITICAL',
-    desc: 'Smoke detected on 4th floor. Emergency sensors triggered at 14:05.',
-    timeAgo: '12 MIN AGO',
-    actionText: 'View Details',
-  },
-  {
-    id: '2',
-    title: 'Medical Emergency',
-    location: 'Cyber Hub, Gurugram',
-    status: 'DISPATCHED',
-    desc: 'Cardiac distress reported by passerby. First responder unit 4B is en route.',
-    timeAgo: '45 MIN AGO',
-    actionText: 'View Details',
-  },
-  {
-    id: '3',
-    title: 'Traffic Incident',
-    location: 'Ring Road, Delhi',
-    status: 'RESOLVED',
-    desc: 'Minor collision cleared. Towing services completed. Area marked as safe.',
-    timeAgo: '3 HOURS AGO',
-    actionText: 'View History',
-  },
-];
-
 const MyReportsScreen = ({ navigation }: any) => {
+  const dispatch = useDispatch<AppDispatch>();
+  const incidents = useSelector((state: RootState) => state.incidents.incidents) || [];
+
+  useEffect(() => {
+    dispatch(fetchIncidents());
+  }, [dispatch]);
   
   // Helper function to render different badge styles based on status
   const renderBadge = (status: string) => {
-    switch (status) {
+    switch (status?.toUpperCase()) {
       case 'CRITICAL':
+      case 'ACTIVE':
         return (
           <View style={[styles.badge, styles.badgeCritical]}>
             <Text style={[styles.badgeText, styles.badgeTextCritical]}>{status}</Text>
@@ -68,69 +47,116 @@ const MyReportsScreen = ({ navigation }: any) => {
           </View>
         );
       default:
-        return null;
+        return (
+          <View style={[styles.badge, styles.badgeDispatched]}>
+            <Text style={[styles.badgeText, styles.badgeTextDispatched]}>{status || 'UNKNOWN'}</Text>
+          </View>
+        );
     }
+  };
+
+  const getTimeAgo = (dateStr?: string) => {
+    if (!dateStr) return 'JUST NOW';
+    const reportDate = new Date(dateStr);
+    const diffMin = Math.round((new Date().getTime() - reportDate.getTime()) / 60000);
+    if (diffMin < 60) return `${diffMin} MIN AGO`;
+    const diffHours = Math.round(diffMin / 60);
+    if (diffHours < 24) return `${diffHours} HOURS AGO`;
+    return `${Math.round(diffHours / 24)} DAYS AGO`;
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
-      {/* Top Header */}
-      {/* <View style={styles.header}>
+      {/* Shared Header */}
+      <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            style={styles.iconButton}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("Home")} style={styles.iconButton}>
             <Icon name="arrow-back" size={24} color="#ffb3ac" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>My Reports</Text>
         </View>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}
-        >
-          <Icon name="filter-list" size={24} color="#94a3b8" />
+        <TouchableOpacity style={styles.iconButton} onPress={() => dispatch(fetchIncidents())}>
+          <Icon name="refresh" size={24} color="#ffb3ac" />
         </TouchableOpacity>
-      </View> */}
+      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
-        {/* Render Report Cards */}
-        {REPORT_DATA.map((report) => (
-          <TouchableOpacity key={report.id} activeOpacity={0.9} style={styles.card}>
-            <View style={styles.cardHeader}>
-              <View style={styles.titleContainer}>
-                <Text style={styles.cardTitle}>{report.title}</Text>
-                <View style={styles.locationRow}>
-                  <Icon name="location-on" size={14} color="#94a3b8" />
-                  <Text style={styles.locationText}>{report.location}</Text>
+        {incidents.length === 0 ? (
+          <View style={styles.emptyState}>
+            <View style={styles.emptyIconContainer}>
+               <Icon name="assignment" size={48} color="rgba(255, 179, 172, 0.2)" />
+            </View>
+            <Text style={styles.emptyTitle}>No Activity Yet</Text>
+            <Text style={styles.emptySubtitle}>Your emergency reports and tracking history will appear here.</Text>
+            <TouchableOpacity 
+              style={styles.reportButton}
+              onPress={() => navigation.navigate("Report Selection")}
+            >
+              <Text style={styles.reportButtonText}>REPORT EMERGENCY</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          incidents.map((report: any) => (
+            <TouchableOpacity key={report._id} activeOpacity={0.9} style={styles.card}>
+              <View style={styles.cardHeader}>
+                <View style={styles.titleContainer}>
+                  <Text style={styles.cardTitle}>{report.title || report.type || 'Emergency Alert'}</Text>
+                  <View style={styles.locationRow}>
+                    <Icon name="location-on" size={14} color="#94a3b8" />
+                    <Text style={styles.locationText}>{report.landmark || report.location?.address || 'Unknown Location'}</Text>
+                  </View>
+                </View>
+                {renderBadge(report.status || 'ACTIVE')}
+              </View>
+
+              <Text style={styles.cardDesc} numberOfLines={2}>
+                {report.desc || report.transcript || 'No description provided.'}
+              </Text>
+
+              <View style={styles.cardFooter}>
+                <Text style={styles.timeText}>{getTimeAgo(report.reportedAt)}</Text>
+                <View style={styles.actionRow}>
+                  <Text style={styles.actionText}>View Details</Text>
+                  <Icon name="chevron-right" size={16} color="#ffb3ac" />
                 </View>
               </View>
-              {renderBadge(report.status)}
-            </View>
+            </TouchableOpacity>
+          ))
+        )}
 
-            <Text style={styles.cardDesc} numberOfLines={2}>
-              {report.desc}
-            </Text>
-
-            <View style={styles.cardFooter}>
-              <Text style={styles.timeText}>{report.timeAgo}</Text>
-              <View style={styles.actionRow}>
-                <Text style={styles.actionText}>{report.actionText}</Text>
-                <Icon name="chevron-right" size={16} color="#ffb3ac" />
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
-
-        {/* Footer Stats */}
-        <View style={styles.listFooter}>
-          <Text style={styles.listFooterText}>SHOWING 3 OF 3 REPORTS</Text>
-          <View style={styles.listFooterDivider} />
-        </View>
-
+        {incidents.length > 0 && (
+          <View style={styles.listFooter}>
+            <Text style={styles.listFooterText}>SHOWING {incidents.length} REPORTS</Text>
+            <View style={styles.listFooterDivider} />
+          </View>
+        )}
       </ScrollView>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Home")}>
+          <Icon name="home" size={24} color="#64748b" />
+          <Text style={styles.navText}>HOME</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
+          <Icon name="assignment" size={24} color="#ffb3ac" />
+          <Text style={[styles.navText, styles.navTextActive]}>REPORTS</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Alerts")}>
+          <Icon name="notifications" size={24} color="#64748b" />
+          <Text style={styles.navText}>ALERTS</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Profile")}>
+          <Icon name="account-circle" size={24} color="#64748b" />
+          <Text style={styles.navText}>PROFILE</Text>
+        </TouchableOpacity>
+      </View>
       
     </SafeAreaView>
   );
@@ -269,25 +295,17 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#ffb3ac',
   },
-  listFooter: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-    gap: 8,
-  },
-  listFooterText: {
-    fontSize: 11,
-    fontWeight: '800',
-    color: '#64748b',
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-  },
-  listFooterDivider: {
-    width: 48,
-    height: 4,
-    backgroundColor: '#283646',
-    borderRadius: 2,
-  },
+  emptyState: { alignItems: 'center', justifyContent: 'center', marginTop: 60, paddingHorizontal: 40 },
+  emptyIconContainer: { width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(255, 179, 172, 0.05)', alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
+  emptyTitle: { fontSize: 20, fontWeight: '800', color: '#d6e4f9', marginBottom: 12 },
+  emptySubtitle: { fontSize: 14, color: '#64748b', textAlign: 'center', lineHeight: 22, marginBottom: 32 },
+  reportButton: { backgroundColor: '#d32f2f', paddingHorizontal: 24, paddingVertical: 14, borderRadius: 12, shadowColor: '#d32f2f', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  reportButtonText: { fontSize: 13, fontWeight: '800', color: '#fff', letterSpacing: 1.5 },
+  bottomNav: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 70, backgroundColor: '#132030', flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)' },
+  navItem: { alignItems: 'center', justifyContent: 'center', padding: 8 },
+  navItemActive: { backgroundColor: '#1e2b3b', borderRadius: 12 },
+  navText: { fontSize: 10, fontWeight: '800', marginTop: 4, color: '#64748b' },
+  navTextActive: { color: '#ffb3ac' },
 });
 
 export default MyReportsScreen;

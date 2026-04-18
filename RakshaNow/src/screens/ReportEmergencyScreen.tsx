@@ -10,15 +10,22 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch } from 'react-redux';
+import { triggerTacticalSOS } from '../store/slices/incidentSlice';
+import type { AppDispatch } from '../store';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const ReportEmergencyScreen = ({ navigation }: any) => {
+  const dispatch = useDispatch<AppDispatch>();
   const [incidentText, setIncidentText] = useState('');
   const [landmark, setLandmark] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -123,7 +130,24 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
           <TouchableOpacity 
             style={styles.submitButtonContainer} 
             activeOpacity={0.8}
-            onPress={() => navigation.replace('Confirmation')}
+            disabled={submitting}
+            onPress={async () => {
+              if (!incidentText.trim()) {
+                Alert.alert('Required', 'Please describe the emergency before submitting.');
+                return;
+              }
+              setSubmitting(true);
+              try {
+                const incident = await dispatch(triggerTacticalSOS(
+                  `${incidentText.trim()} ${landmark ? '(Near ' + landmark.trim() + ')' : ''}`
+                ));
+                navigation.replace('Confirmation', { incident });
+              } catch (error) {
+                Alert.alert('Error', 'Failed to submit report. Please try again.');
+              } finally {
+                setSubmitting(false);
+              }
+            }}
           >
             <LinearGradient
               colors={['#ffb3ac', '#d32f2f']}
@@ -131,8 +155,14 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 0 }}
             >
-              <Text style={styles.submitButtonText}>Submit Report</Text>
-              <Icon name="arrow-forward" size={20} color="#fff2f0" />
+              {submitting ? (
+                <ActivityIndicator color="#fff2f0" />
+              ) : (
+                <>
+                  <Text style={styles.submitButtonText}>Submit Report</Text>
+                  <Icon name="arrow-forward" size={20} color="#fff2f0" />
+                </>
+              )}
             </LinearGradient>
           </TouchableOpacity>
           

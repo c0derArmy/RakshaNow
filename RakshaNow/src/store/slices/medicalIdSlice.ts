@@ -4,9 +4,11 @@ import { AppDispatch } from '../index';
 
 interface MedicalID {
   userId: string;
-  bloodType: string;
+  bloodGroup?: string;
+  bloodType?: string;
   allergies: string[];
   medications: string[];
+  emergencyContacts?: { name: string; phone: string }[];
 }
 
 interface MedicalIDState {
@@ -39,10 +41,10 @@ export const fetchMedicalID = (userId: string) => async (dispatch: AppDispatch) 
   }
 };
 
-export const updateMedicalID = (medicalID: MedicalID, dispatch: AppDispatch) => async () => {
+export const updateMedicalID = (medicalID: any, _dispatch?: any) => async (dispatch: AppDispatch) => {
   try {
-    await axiosClient.put(`/medical-id/${medicalID.userId}`, medicalID);
-    dispatch(setMedicalID(medicalID));
+    const response = await axiosClient.put(`/medical-id/${medicalID.userId}`, medicalID);
+    dispatch(setMedicalID(response.data));
   } catch (error) {
     console.error('Failed to update Medical ID:', error);
   }

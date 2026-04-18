@@ -15,7 +15,31 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
-const ConfirmationScreen = ({ navigation }: any) => {
+const ConfirmationScreen = ({ navigation, route }: any) => {
+  const { incident } = route.params || {};
+
+  // Extract values with sensible defaults
+  const incidentId = incident?._id ? `#RN${incident._id.slice(-6).toUpperCase()}` : '#RN2025001';
+  const type = (incident?.type || 'UNKNOWN').toUpperCase();
+  const status = (incident?.status || 'CRITICAL').toUpperCase();
+  const summary = incident?.desc || incident?.transcript || 'Your emergency report has been shared with the rapid response team.';
+
+  // Map type to icons and services
+  const getServiceInfo = (incidentType: string) => {
+    switch (incidentType) {
+      case 'FIRE':
+        return { name: 'Fire Brigade', icon: 'fire-truck', color: '#ffb3ac', tag: '🔥 FIRE' };
+      case 'MEDICAL':
+        return { name: 'Ambulance', icon: 'medical-services', color: '#76daa3', tag: '🚑 MEDICAL' };
+      case 'POLICE':
+        return { name: 'Police Station', icon: 'local-police', color: '#64748b', tag: '👮 POLICE' };
+      default:
+        return { name: 'Emergency Services', icon: 'shield', color: '#ffb3ac', tag: '🚨 ALERT' };
+    }
+  };
+
+  const service = getServiceInfo(type);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#061423" translucent={true} />
@@ -26,23 +50,6 @@ const ConfirmationScreen = ({ navigation }: any) => {
         style={styles.backgroundImage}
         imageStyle={{ opacity: 0.05 }} // Subtle background map texture
       />
-
-      {/* Top Header */}
-      {/* <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            style={styles.iconButton}
-            activeOpacity={0.7}
-          >
-            <Icon name="arrow-back" size={24} color="#ffb3ac" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>RakshaNow</Text>
-        </View>
-        <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>
-          <Icon name="help-outline" size={24} color="#64748b" />
-        </TouchableOpacity>
-      </View> */}
 
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
@@ -61,7 +68,7 @@ const ConfirmationScreen = ({ navigation }: any) => {
 
           <Text style={styles.mainHeading}>Emergency Reported!</Text>
           <Text style={styles.subHeading}>
-            Your request has been dispatched to the nearest command center.
+            {summary}
           </Text>
         </View>
 
@@ -71,28 +78,28 @@ const ConfirmationScreen = ({ navigation }: any) => {
             <View>
               <Text style={styles.aiLabel}>AI DIAGNOSIS</Text>
               <View style={styles.tagsContainer}>
-                <View style={styles.fireTag}>
-                  <Icon name="local-fire-department" size={14} color="#fff2f0" />
-                  <Text style={styles.fireTagText}>🔥 FIRE</Text>
+                <View style={[styles.fireTag, type !== 'FIRE' && { backgroundColor: service.color + '40' }]}>
+                  <Icon name={service.icon} size={14} color="#fff2f0" />
+                  <Text style={styles.fireTagText}>{service.tag}</Text>
                 </View>
-                <View style={styles.criticalTag}>
-                  <Text style={styles.criticalTagText}>CRITICAL</Text>
+                <View style={[styles.criticalTag, status === 'RESOLVED' && { borderColor: '#76daa3' }]}>
+                  <Text style={[styles.criticalTagText, status === 'RESOLVED' && { color: '#76daa3' }]}>{status}</Text>
                 </View>
               </View>
             </View>
             <View style={styles.incidentIdContainer}>
               <Text style={styles.incidentLabel}>INCIDENT ID</Text>
-              <Text style={styles.incidentValue}>#RN2025001</Text>
+              <Text style={styles.incidentValue}>{incidentId}</Text>
             </View>
           </View>
 
           <View style={styles.recommendedServiceContainer}>
             <Text style={styles.serviceLabel}>RECOMMENDED SERVICE</Text>
             <View style={styles.serviceRow}>
-              <View style={styles.serviceIconWrapper}>
-                <Icon name="fire-truck" size={24} color="#ffb3ac" />
+              <View style={[styles.serviceIconWrapper, { backgroundColor: service.color + '26' }]}>
+                <Icon name={service.icon} size={24} color={service.color} />
               </View>
-              <Text style={styles.serviceName}>🚒 Fire Brigade</Text>
+              <Text style={styles.serviceName}>{service.name}</Text>
             </View>
           </View>
 
@@ -137,7 +144,7 @@ const ConfirmationScreen = ({ navigation }: any) => {
         <TouchableOpacity 
           style={styles.secondaryButton} 
           activeOpacity={0.7}
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('Report Selection')}
         >
           <Text style={styles.secondaryButtonText}>REPORT ANOTHER</Text>
         </TouchableOpacity>

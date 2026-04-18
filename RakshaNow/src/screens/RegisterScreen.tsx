@@ -830,17 +830,16 @@ const RegisterScreen = ({ navigation }: any) => {
       navigation.replace("Home");
 
     } catch (error: any) {
-
       setLoading(false);
 
-      Alert.alert(
-        "Register Failed",
-        error?.response?.data?.details || error?.response?.data?.message ||
-        "Registration failed. Please try again."
-      );
+      const errorMessage = error?.response?.data?.details || 
+                          error?.response?.data?.message || 
+                          (error.message === "Network Error" 
+                            ? "Network Error: Please ensure backend is running and ADB reverse is configured." 
+                            : "Registration failed. Please try again.");
 
-      console.log("REGISTER ERROR:", error?.response?.data);
-
+      Alert.alert("Register Failed", errorMessage);
+      console.log("REGISTER ERROR:", error?.response?.data || error.message);
     }
 
   };
