@@ -6,19 +6,18 @@ const admin = require('../config/firebase');
 
 exports.registerUser = async (req, res) => {
   try {
+    console.log(`>>> [${new Date().toLocaleTimeString()}] REGISTRATION REQUEST:`, { ...req.body, password: '***' });
     const { name, phone, email, password } = req.body;
 
     // ==========================================
-    // 🛡️ PASSWORD VALIDATION
+    // 🛡️ PASSWORD VALIDATION (Relaxed for development)
     // ==========================================
-    const passwordRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^.{6,}$/;
 
     if (!passwordRegex.test(password)) {
       return res.status(400).json({
         message: "Weak Password",
-        details:
-          "Password must be at least 8 characters and include 1 uppercase, 1 lowercase, 1 number, and 1 special character (@$!%*?&).",
+        details: "Password must be at least 6 characters long.",
       });
     }
 
@@ -80,6 +79,7 @@ exports.registerUser = async (req, res) => {
 
 exports.loginUser = async (req, res) => {
   try {
+    console.log(`>>> [${new Date().toLocaleTimeString()}] LOGIN REQUEST:`, { phone: req.body.phone });
     const { phone, password } = req.body;
     const user = await User.findOne({ phone });
     if (!user) return res.status(400).json({ message: 'Invalid credentials' });

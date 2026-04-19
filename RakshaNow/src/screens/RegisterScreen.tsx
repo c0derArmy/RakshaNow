@@ -819,6 +819,7 @@ const RegisterScreen = ({ navigation }: any) => {
           phone: cleanPhone,
           email: formData.email,
           password: formData.password,
+          role: activeRole,
         })
 
       );

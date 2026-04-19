@@ -66,14 +66,20 @@ export const registerUser = (userData: {
   phone: string;
   email: string;
   password: string;
+  role: string;
 }) => async (dispatch: AppDispatch) => {
   try {
-    const response = await axiosClient.post('/auth/register', userData);
+    // Ensure role is uppercase for backend validation
+    const payload = {
+      ...userData,
+      role: userData.role.toUpperCase()
+    };
+    const response = await axiosClient.post('/auth/register', payload);
     dispatch(setUser(response.data));
-    return response.data; // ✅ Add this to return the response data
+    return response.data;
   } catch (error) {
     console.error('Registration failed:', error);
-    throw error; // ✅ Re-throw error so it can be caught in the component
+    throw error;
   }
 };
 
@@ -105,7 +111,7 @@ export const updateProfilePic =
       } as any);
 
       // We use the PC IP directly to ensure the phone can find the computer
-      const PC_IP = "10.253.37.129";
+      const PC_IP = "10.115.15.129";
       const uploadUrl = `http://${PC_IP}:5000/api/users/profile-pic`;
 
       console.log(`🚀 UPLOADING TO: ${uploadUrl}`);

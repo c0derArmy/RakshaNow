@@ -5,7 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from './src/screens/SplashScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
-import HomeScreen from './src/screens/HomeScreen';
+import DrawerNavigator from './src/navigation/DrawerNavigator';
 import ReportSelectionScreen from './src/screens/ReportSelectionScreen';
 import ReportEmergencyScreen from './src/screens/ReportEmergencyScreen';
 import VoiceReportScreen from './src/screens/VoiceReportScreen';
@@ -75,7 +75,7 @@ const App = () => {
 
           <Stack.Screen
             name="Home"
-            component={HomeScreen}
+            component={DrawerNavigator}
             options={{ headerShown: false }}
           />
           <Stack.Screen
@@ -113,15 +113,11 @@ const App = () => {
             }}
           />
 
-          <Stack.Screen
-            name="My Reports"
-            component={MyReportsScreen}
-            options={{
-              presentation: 'transparentModal',
-              animation: 'slide_from_bottom',
-            }}
-          />
-
+          {/* These screens are now handled by the DrawerNavigator */}
+          {/* <Stack.Screen 
+            name="My Reports" 
+            ... 
+          /> */}
           <Stack.Screen
             name="Responder Dashboard"
             component={ResponderDashboardScreen}
@@ -129,22 +125,7 @@ const App = () => {
               headerShown: false,
             }}
           />
-
           <Stack.Screen
-            name="Profile"
-            component={ProfileScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-          <Stack.Screen
-            name="Alerts"
-            component={AlertsScreen}
-            options={{
-              headerShown: false,
-            }}
-          />
-         <Stack.Screen
             name="Emergency Contacts"
             component={EmergencyContactsScreen}
             options={{

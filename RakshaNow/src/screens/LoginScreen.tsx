@@ -19,7 +19,7 @@ import type { AppDispatch } from '../store';
 import { loginUser, googleLogin } from '../store/slices/userSlice';
 
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import auth, { GoogleAuthProvider, signInWithCredential } from '@react-native-firebase/auth';
+import { getAuth, GoogleAuthProvider, signInWithCredential, getIdToken } from '@react-native-firebase/auth';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
@@ -120,9 +120,10 @@ const LoginScreen = ({ navigation }: any) => {
       }
 
       const googleCredential = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(auth(), googleCredential);
+      await signInWithCredential(getAuth(), googleCredential);
 
-      const firebaseToken = await auth().currentUser?.getIdToken(true);
+      const user = getAuth().currentUser;
+      const firebaseToken = user ? await getIdToken(user, true) : null;
       if (!firebaseToken) {
         throw new Error('Firebase auth token not found');
       }

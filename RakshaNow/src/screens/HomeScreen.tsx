@@ -66,14 +66,18 @@ const HomeScreen = ({ navigation }: any) => {
       {/* Top App Bar */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <TouchableOpacity activeOpacity={0.7} style={styles.iconButton}>
+          <TouchableOpacity 
+            activeOpacity={0.7} 
+            style={styles.iconButton}
+            onPress={() => navigation.openDrawer()}
+          >
             <Icon name="menu" size={28} color="#ffb3ac" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>RakshaNow</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.7} style={styles.iconButton}>
+        {/* <TouchableOpacity activeOpacity={0.7} style={styles.iconButton}>
           <Icon name="search" size={28} color="#ffb3ac" />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       {/* Main Content Area */}

@@ -51,7 +51,7 @@ const axiosClient = axios.create({
   // Use localhost for both iOS and Android (requires adb reverse on Android)
   // Use PC IP for Android (Physical Device) and localhost/10.0.2.2 for Emulator
   // Use PC IP for Android (Physical Device) to reach the server over Wi-Fi
-  baseURL: Platform.OS === "android" ? "http://10.253.37.129:5000/api" : "http://localhost:5000/api",
+  baseURL: Platform.OS === "android" ? "http://10.115.15.129:5000/api" : "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
