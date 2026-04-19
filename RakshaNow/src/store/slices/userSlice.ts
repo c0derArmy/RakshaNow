@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Platform } from 'react-native';
+import axios from 'axios';
 import axiosClient, { setAuthToken } from '../../utils/axiosClient';
 import { AppDispatch } from '../index';
 
@@ -93,11 +93,40 @@ export const logoutUser = () => async (dispatch: AppDispatch) => {
   }
 };
 
+// Fetch fresh user data from backend
+export const fetchCurrentUser = () => async (dispatch: AppDispatch, getState: () => any) => {
+  try {
+    const currentState = getState().user.user;
+    const token = currentState?.token;
+    
+    if (!token) throw new Error("No authentication token found");
+    
+    const response = await axiosClient.get('/users/me');
+    
+    dispatch(
+      setUser({
+        token: token,
+        user: response.data
+      })
+    );
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Fetch user error:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
 export const updateProfilePic =
   (imageData: any) => async (dispatch: AppDispatch, getState: () => any) => {
     try {
       const currentState = getState().user.user;
       const token = currentState?.token;
+
+      console.log("Image data:", JSON.stringify(imageData));
+      console.log("Token exists:", !!token);
+      console.log("Token value:", token ? token.substring(0, 20) + "..." : "NO TOKEN");
+      console.log("User state:", JSON.stringify(currentState));
 
       if (!token) throw new Error("No authentication token found. Please log in again.");
 
@@ -110,28 +139,34 @@ export const updateProfilePic =
         name: imageData.fileName || `profile_${Date.now()}.jpg`,
       } as any);
 
-      // We use the PC IP directly to ensure the phone can find the computer
-      const PC_IP = "10.115.15.129";
-      const uploadUrl = `http://${PC_IP}:5000/api/users/profile-pic`;
+      console.log("FormData created. Image URI:", imageData.uri);
 
-      console.log(`🚀 UPLOADING TO: ${uploadUrl}`);
-
-      const response = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-          // Do NOT set Content-Type: multipart/form-data here.
-        },
-        body: formData,
+      // Use the same baseURL pattern as axiosClient
+      const axiosInstance = axios.create({
+        baseURL: 'http://10.115.15.129:5000/api',
+        timeout: 30000,
       });
 
-      const responseData = await response.json();
+      axiosInstance.interceptors.request.use((config) => {
+        config.headers.Authorization = `Bearer ${token}`;
+        return config;
+      });
 
-      if (!response.ok) {
-        console.log('❌ SERVER ERROR:', responseData);
-        throw new Error(responseData.message || `Server responded with ${response.status}`);
+      console.log(`🚀 UPLOADING TO: http://10.115.15.129:5000/api/users/profile-pic`);
+
+      // First test connectivity
+      console.log('🧪 Testing connectivity...');
+      try {
+        await axiosInstance.get('/users/test', { timeout: 5000 });
+        console.log('✅ Connectivity test passed');
+      } catch (testErr: any) {
+        console.log('⚠️ Connectivity test result:', testErr?.message || 'failed');
       }
+
+      console.log('📤 Starting upload...');
+      const response = await axiosInstance.put('/users/profile-pic', formData);
+
+      const responseData = response.data;
 
       console.log('✅ UPLOAD SUCCESSFUL!');
       const { user } = responseData;
@@ -147,7 +182,11 @@ export const updateProfilePic =
 
       return responseData;
     } catch (error: any) {
-      console.log('🔴 UPLOAD ERROR:', error.message);
+      console.log('🔴 UPLOAD ERROR:', error);
+      console.log('🔴 Error name:', error?.name);
+      console.log('🔴 Error message:', error?.message);
+      console.log('🔴 Error response:', error?.response?.data);
+      console.log('🔴 Error code:', error?.code);
       throw error;
     }
   };

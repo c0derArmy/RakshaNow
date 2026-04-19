@@ -18,7 +18,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../store";
-import { logoutUser, updateProfilePic } from "../store/slices/userSlice";
+import { logoutUser, updateProfilePic, fetchCurrentUser } from "../store/slices/userSlice";
 
 const STATUSBAR_HEIGHT =
   Platform.OS === "android"
@@ -30,6 +30,10 @@ const ProfileScreen = ({ navigation }: any) => {
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch<AppDispatch>();
   const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    dispatch(fetchCurrentUser() as any);
+  }, [dispatch]);
 
   const handleImagePick = async () => {
     const options: any = {
@@ -50,8 +54,9 @@ const ProfileScreen = ({ navigation }: any) => {
       setLoading(true);
       await dispatch(updateProfilePic(asset));
       Alert.alert("Success", "Profile picture updated!");
-    } catch (error) {
-      Alert.alert("Error", "Failed to update profile picture.");
+    } catch (error: any) {
+      console.log("Profile update error:", error);
+      Alert.alert("Error", error?.message || "Failed to update profile picture.");
     } finally {
       setLoading(false);
     }
@@ -144,13 +149,13 @@ const ProfileScreen = ({ navigation }: any) => {
           <View style={styles.statusBadge}>
 
             <Icon
-              name="verified-user"
+              name={user?.phone ? "verified-user" : "error-outline"}
               size={14}
-              color="#76daa3"
+              color={user?.phone ? "#76daa3" : "#ff6b6b"}
             />
 
             <Text style={styles.statusText}>
-              VERIFIED USER
+              {user?.role === 'RESPONDER' ? 'ACTIVE RESPONDER' : 'ACTIVE CITIZEN'}
             </Text>
 
           </View>

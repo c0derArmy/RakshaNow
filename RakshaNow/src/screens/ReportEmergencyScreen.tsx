@@ -52,8 +52,20 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
-      
-    
+      {/* Top Header */}
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={styles.iconButton}
+            activeOpacity={0.7}
+          >
+            <Icon name="arrow-back" size={24} color="#ffb3ac" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Emergency Report</Text>
+        </View>
+      </View>
+
       <KeyboardAvoidingView 
         style={styles.keyboardAvoid} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

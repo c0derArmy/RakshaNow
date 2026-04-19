@@ -55,7 +55,7 @@ const HowItWorksScreen = ({ navigation }: any) => {
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
       {/* Top Header */}
-      {/* <View style={styles.header}>
+      <View style={styles.header}>
         <View style={styles.headerLeft}>
           <TouchableOpacity 
             onPress={() => navigation.goBack()} 
@@ -66,7 +66,7 @@ const HowItWorksScreen = ({ navigation }: any) => {
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Safety Guide</Text>
         </View>
-      </View> */}
+      </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         

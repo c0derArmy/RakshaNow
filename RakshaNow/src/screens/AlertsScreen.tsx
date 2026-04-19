@@ -54,6 +54,13 @@ const AlertsScreen = ({ navigation }: any) => {
       {/* Top Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
+          <TouchableOpacity 
+            onPress={() => navigation.goBack()} 
+            style={styles.iconButton}
+            activeOpacity={0.7}
+          >
+            <Icon name="arrow-back" size={24} color="#ffb3ac" />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Govt. Alerts</Text>
         </View>
         <TouchableOpacity style={styles.iconButton} activeOpacity={0.7}>

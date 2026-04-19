@@ -3,6 +3,26 @@ const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 const { updateProfilePic } = require('../controllers/userController');
+const User = require('../models/User');
+
+// Test route for connectivity
+router.get('/test', (req, res) => {
+  console.log('🧪 TEST ROUTE HIT');
+  res.json({ message: 'Server is reachable!', timestamp: new Date().toISOString() });
+});
+
+// @route   GET api/users/me
+// @desc    Get current user data
+// @access  Private
+router.get('/me', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (error) {
+    console.error('❌ Error getting user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // @route   PUT api/users/profile-pic
 // @desc    Update user profile picture

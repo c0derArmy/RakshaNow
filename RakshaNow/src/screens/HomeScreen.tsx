@@ -25,6 +25,45 @@ const HomeScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.user.user);
 
+  const [sosPressed, setSosPressed] = React.useState(false);
+  const [gpsActive, setGpsActive] = React.useState(false);
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) return 'Good Morning';
+    if (hour >= 12 && hour < 17) return 'Good Afternoon';
+    if (hour >= 17 && hour < 21) return 'Good Evening';
+    return 'Good Night';
+  };
+
+  const greeting = getGreeting();
+
+  React.useEffect(() => {
+    checkGpsStatus();
+  }, []);
+
+  const checkGpsStatus = async () => {
+    try {
+      const hasPermission = await LocationService.requestPermission();
+      if (hasPermission) {
+        await LocationService.getCurrentPosition();
+        setGpsActive(true);
+      } else {
+        setGpsActive(false);
+      }
+    } catch (e) {
+      setGpsActive(false);
+    }
+  };
+
+  const handleSosPressIn = () => {
+    setSosPressed(true);
+  };
+
+  const handleSosPressOut = () => {
+    setSosPressed(false);
+  };
+
   const handleQuickSOS = async () => {
     // 1. Fetch Location first
     let location = null;
@@ -89,10 +128,12 @@ const HomeScreen = ({ navigation }: any) => {
         {/* Greeting Section */}
         <View style={styles.greetingSection}>
           <View style={styles.greetingTextContainer}>
-            <Text style={styles.greetingText}>Good Morning, {user?.name || 'User'}</Text>
+            <Text style={styles.greetingText}>{greeting}, {user?.name || 'User'}</Text>
             <View style={styles.gpsContainer}>
-              <View style={styles.gpsDot} />
-              <Text style={styles.gpsText}>GPS ACTIVE</Text>
+              <View style={[styles.gpsDot, !gpsActive && styles.gpsDotInactive]} />
+              <Text style={[styles.gpsText, !gpsActive && styles.gpsTextInactive]}>
+                {gpsActive ? 'GPS ACTIVE' : 'GPS NOT ACTIVE'}
+              </Text>
             </View>
           </View>
           <TouchableOpacity style={styles.profileImageContainer}
@@ -108,27 +149,26 @@ const HomeScreen = ({ navigation }: any) => {
 
         {/* SOS Button Section */}
         <View style={styles.sosSection}>
-          {/* Concentric Static Rings mimicking the pulse */}
-          <View style={[styles.pulseRing, { width: 300, height: 300, borderColor: 'rgba(211,47,47,0.1)' }]} />
-          <View style={[styles.pulseRing, { width: 240, height: 240, borderColor: 'rgba(211,47,47,0.2)' }]} />
-          <View style={[styles.pulseRing, { width: 190, height: 190, backgroundColor: 'rgba(211,47,47,0.05)', borderWidth: 0 }]} />
-
-          <TouchableOpacity 
+          <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => navigation.navigate("Report Selection")}
             onLongPress={handleQuickSOS}
+            onPressIn={handleSosPressIn}
+            onPressOut={handleSosPressOut}
           >
             <LinearGradient
-              colors={['#d32f2f', '#ba1a20']}
-              style={styles.sosButton}
+              colors={sosPressed ? ['#ff1744', '#d50000'] : ['#d32f2f', '#ba1a20']}
+              style={[styles.sosButton, sosPressed && styles.sosButtonPressed]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
             >
-              <Text style={styles.sosText}>SOS</Text>
+              <Text style={[styles.sosText, sosPressed && styles.sosTextPressed]}>SOS</Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <Text style={styles.sosInstruction}>PRESS TO REPORT EMERGENCY</Text>
+          <Text style={[styles.sosInstruction, sosPressed && styles.sosInstructionPressed]}>
+            {sosPressed ? 'HOLD FOR QUICK SOS' : 'PRESS TO REPORT EMERGENCY'}
+          </Text>
         </View>
 
         {/* Quick Actions Row */}
@@ -290,11 +330,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+  gpsDotInactive: {
+    backgroundColor: '#ff6b6b',
+    shadowColor: '#ff6b6b',
+  },
   gpsText: {
     fontSize: 11,
     fontWeight: '800',
     color: '#76daa3',
     letterSpacing: 1.5,
+  },
+  gpsTextInactive: {
+    color: '#ff6b6b',
   },
   profileImageContainer: {
     width: 48,
@@ -313,12 +360,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 48,
-    position: 'relative',
-  },
-  pulseRing: {
-    position: 'absolute',
-    borderRadius: 999,
-    borderWidth: 1,
   },
   sosButton: {
     width: 165,
@@ -344,6 +385,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: 'rgba(255, 179, 172, 0.8)',
     letterSpacing: 0.5,
+  },
+  sosButtonPressed: {
+    shadowColor: '#ff1744',
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.6,
+    shadowRadius: 50,
+    elevation: 20,
+  },
+  sosTextPressed: {
+    fontSize: 56,
+  },
+  sosInstructionPressed: {
+    color: '#ff1744',
+    fontWeight: '800',
   },
   actionsRow: {
     flexDirection: 'row',

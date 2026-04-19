@@ -11,26 +11,49 @@ import {
   DrawerContentComponentProps,
   DrawerContentScrollView,
 } from '@react-navigation/drawer';
+
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
-import { setUser } from '../store/slices/userSlice';
+import { setUser, logoutUser } from '../store/slices/userSlice';
+import { Alert } from 'react-native'; // Alert import karein
 
 const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch<AppDispatch>();
 
-  const handleLogout = () => {
-    dispatch(setUser(null));
-    // Navigation back to Login will be handled by App.tsx if it listens to user state
-    // For now we navigate explicitly if needed, but usually App handles it.
+ const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to logout?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Logout",
+          onPress: async () => {
+            try {
+              // Action call karein jo API/Storage clear karega
+              await dispatch(logoutUser());
+              
+              // Navigation reset karein taki user login page par chala jaye
+              props.navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              });
+            } catch (error) {
+              console.error("Logout issue", error);
+            }
+          },
+        },
+      ]
+    );
   };
-
   const menuItems = [
     { label: 'HOME', icon: 'home', route: 'Home' },
     { label: 'REPORTS', icon: 'assignment', route: 'My Reports' },
     { label: 'ALERTS', icon: 'notifications', route: 'Alerts' },
+    { label: 'HOW IT WORKS', icon: 'help-outline', route: 'How It Works' },
     { label: 'PROFILE', icon: 'person', route: 'Profile' },
   ];
 
@@ -53,7 +76,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
           </View>
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{user?.name || 'User Name'}</Text>
-            <Text style={styles.userRole}>ACTIVE RESPONDER</Text>
+            <Text style={styles.userRole}>{user?.role === 'RESPONDER' ? 'ACTIVE RESPONDER' : 'ACTIVE CITIZEN'}</Text>
           </View>
         </TouchableOpacity>
       </LinearGradient>
@@ -78,7 +101,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
       <View style={styles.footer}>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Icon name="logout" size={20} color="#64748b" />
-          <Text style={styles.logoutText}>LOGOUT SYSTEM</Text>
+          <Text style={styles.logoutText}>LOGOUT</Text>
         </TouchableOpacity>
         <Text style={styles.versionText}>RAKSHA v1.0.4</Text>
       </View>
