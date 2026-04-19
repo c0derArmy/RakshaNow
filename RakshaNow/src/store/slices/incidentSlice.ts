@@ -65,7 +65,7 @@ export const triggerTacticalSOS = (description: string, location?: any) => async
   try {
     const response = await axiosClient.post('/sos/trigger', {
       description,
-      location: location || { lat: 28.4595, lng: 77.0266, address: 'Sector 42, Gurgaon' } // Mock if not provided
+      location: location // Use provided location or let backend handle null
     });
     // The tactical SOS also stores an incident in the backend
     if (response.data.incident) {

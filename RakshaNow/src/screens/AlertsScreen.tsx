@@ -89,7 +89,9 @@ const AlertsScreen = ({ navigation }: any) => {
                     <Icon name={icon} size={28} color={color} />
                   </View>
                   <View style={styles.textContainer}>
-                    <Text style={styles.alertTitle}>Emergency at {incident.landmark || 'Location'}</Text>
+                    <Text style={styles.alertTitle}>
+                      {incident.location?.address || incident.landmark || 'Unknown Location'}
+                    </Text>
                     <Text style={styles.alertDesc} numberOfLines={3}>{incident.desc || incident.transcript}</Text>
                     <View style={[styles.statusBadge, { borderColor: color }]}>
                        <Text style={[styles.statusText, { color }]}>{incident.status}</Text>

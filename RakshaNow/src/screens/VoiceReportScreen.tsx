@@ -19,6 +19,7 @@ import { triggerTacticalSOS } from '../store/slices/incidentSlice';
 import { AppDispatch } from '../store';
 import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice/voice';
 import { NativeModules } from 'react-native';
+import { LocationService, LocationData } from '../utils/locationUtils';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
@@ -29,9 +30,28 @@ const VoiceReportScreen = ({ navigation }: any) => {
   const [results, setResults] = useState<string[]>([]);
   const [partialResults, setPartialResults] = useState<string[]>([]);
   const [seconds, setSeconds] = useState(0);
+  const [location, setLocation] = useState<LocationData | null>(null);
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Fetch live location on mount
+    const fetchLocation = async () => {
+      setIsFetchingLocation(true);
+      const hasPermission = await LocationService.requestPermission();
+      if (hasPermission) {
+        try {
+          const coords = await LocationService.getCurrentPosition();
+          const address = await LocationService.reverseGeocode(coords.latitude, coords.longitude);
+          setLocation({ ...coords, address });
+        } catch (error) {
+          console.error('Location Fetch Failed:', error);
+        }
+      }
+      setIsFetchingLocation(false);
+    };
+
+    fetchLocation();
     // 1. Setup Voice listeners
     Voice.onSpeechStart = () => setIsRecording(true);
     Voice.onSpeechEnd = () => setIsRecording(false);
@@ -42,7 +62,13 @@ const VoiceReportScreen = ({ navigation }: any) => {
       if (e.value) setPartialResults(e.value);
     };
     Voice.onSpeechError = (e: SpeechErrorEvent) => {
-      console.error('Speech Recognition Error:', e.error);
+      // Error code 7 (No match) and 11 (Didn't understand)
+      if (e.error?.code === '7' || e.error?.code === '11') {
+        console.log(`Voice: ${e.error?.message}, resetting...`);
+      } else {
+        console.error('Speech Recognition Error:', e.error);
+        Alert.alert('Voice Error', 'We could not recognize your speech. Please try again.');
+      }
       setIsRecording(false);
       stopTimer();
     };
@@ -127,7 +153,8 @@ const VoiceReportScreen = ({ navigation }: any) => {
 
     setSubmitting(true);
     try {
-      const resultAction = await dispatch(triggerTacticalSOS(finalTranscript));
+      // PASS REAL GPS DATA TO THE BACKEND
+      const resultAction = await dispatch(triggerTacticalSOS(finalTranscript, location));
       const incident = resultAction.payload;
       navigation.replace('Confirmation', { incident });
     } catch (error) {
@@ -141,20 +168,7 @@ const VoiceReportScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
-      {/* Top Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            style={styles.iconButton}
-            activeOpacity={0.7}
-          >
-            <Icon name="arrow-back" size={24} color="#ffb3ac" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Voice Report</Text>
-        </View>
-      </View>
-
+   
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
         {/* GPS Bar */}
@@ -164,9 +178,13 @@ const VoiceReportScreen = ({ navigation }: any) => {
           </View>
           <View style={styles.gpsTextContainer}>
             <Text style={styles.gpsLabel}>Live GPS Location</Text>
-            <Text style={styles.gpsValue}>Sector 42, Gurgaon • Near Cyber Hub</Text>
+            <Text style={[styles.gpsValue, isFetchingLocation && { opacity: 0.5 }]}>
+              {isFetchingLocation 
+                ? 'Fetching live position...' 
+                : location?.address || (location?.latitude ? `${location.latitude.toFixed(4)}, ${location.longitude.toFixed(4)}` : 'Location unavailable')}
+            </Text>
           </View>
-          <View style={styles.gpsDot} />
+          <View style={[styles.gpsDot, isFetchingLocation && { backgroundColor: '#64748b', shadowColor: 'transparent' }]} />
         </View>
 
         {/* Central Recording Area */}

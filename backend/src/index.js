@@ -6,13 +6,29 @@ const rateLimit = require('express-rate-limit');
 
 const app = express();
 
-// ✅ CRUCIAL: Enable JSON parsing middleware
-app.use(express.json());
+// ✅ ABSOLUTE FIRST: Log every request that hits the server
+app.use((req, res, next) => {
+  console.log(`>>> [${new Date().toLocaleTimeString()}] INCOMING: ${req.method} ${req.url}`);
+  next();
+});
+
+// ✅ CRUCIAL: Enable JSON parsing middleware with increased limits
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(cors({
   origin: true,   // ✅ Allow all origins
   credentials: true
 }));
+
+// Global Error Handlers to prevent process.exit(1) on async errors
+process.on('uncaughtException', (err) => {
+  console.error('💥 UNCAUGHT EXCEPTION:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 UNHANDLED REJECTION:', reason);
+});
 
 // Rate Limiting
 const generalLimiter = rateLimit({

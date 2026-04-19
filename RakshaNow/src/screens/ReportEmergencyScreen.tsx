@@ -18,6 +18,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch } from 'react-redux';
 import { triggerTacticalSOS } from '../store/slices/incidentSlice';
 import type { AppDispatch } from '../store';
+import { LocationService, LocationData } from '../utils/locationUtils';
+import { useEffect } from 'react';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
@@ -26,25 +28,32 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
   const [incidentText, setIncidentText] = useState('');
   const [landmark, setLandmark] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [location, setLocation] = useState<LocationData | null>(null);
+  const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+
+  useEffect(() => {
+    const fetchLocation = async () => {
+      setIsFetchingLocation(true);
+      const hasPermission = await LocationService.requestPermission();
+      if (hasPermission) {
+        try {
+          const coords = await LocationService.getCurrentPosition();
+          const address = await LocationService.reverseGeocode(coords.latitude, coords.longitude);
+          setLocation({ ...coords, address });
+        } catch (error) {
+          console.error('Location Fetch Failed:', error);
+        }
+      }
+      setIsFetchingLocation(false);
+    };
+    fetchLocation();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
-      {/* Top Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity 
-            onPress={() => navigation.goBack()} 
-            style={styles.iconButton}
-            activeOpacity={0.7}
-          >
-            <Icon name="arrow-back" size={24} color="#ffb3ac" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Report Emergency</Text>
-        </View>
-      </View>
-
+    
       <KeyboardAvoidingView 
         style={styles.keyboardAvoid} 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -57,11 +66,13 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
           {/* GPS Status Bar */}
           <View style={styles.gpsBar}>
             <View style={styles.gpsIndicatorContainer}>
-              <View style={styles.gpsDot} />
-              <View style={styles.gpsDotPulse} />
+              <View style={[styles.gpsDot, isFetchingLocation && { backgroundColor: '#64748b' }]} />
+              {!isFetchingLocation && <View style={styles.gpsDotPulse} />}
             </View>
-            <Text style={styles.gpsText}>Location captured</Text>
-            <Text style={styles.gpsStatusText}>GPS ACTIVE</Text>
+            <Text style={[styles.gpsText, isFetchingLocation && { color: '#64748b' }]}>
+              {isFetchingLocation ? 'Fetching position...' : 'Location captured'}
+            </Text>
+            <Text style={styles.gpsStatusText}>{isFetchingLocation ? 'SCANNING' : 'GPS ACTIVE'}</Text>
           </View>
 
           {/* Heading */}
@@ -139,7 +150,8 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
               setSubmitting(true);
               try {
                 const incident = await dispatch(triggerTacticalSOS(
-                  `${incidentText.trim()} ${landmark ? '(Near ' + landmark.trim() + ')' : ''}`
+                  `${incidentText.trim()} ${landmark ? '(Near ' + landmark.trim() + ')' : ''}`,
+                  location
                 ));
                 navigation.replace('Confirmation', { incident });
               } catch (error) {

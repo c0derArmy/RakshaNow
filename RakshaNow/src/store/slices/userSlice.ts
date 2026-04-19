@@ -93,26 +93,29 @@ export const updateProfilePic =
       const currentState = getState().user.user;
       const token = currentState?.token;
 
-      if (!token) throw new Error("No authentication token found");
+      if (!token) throw new Error("No authentication token found. Please log in again.");
 
       const formData = new FormData();
       
-      // Android URI handling: Use the uri directly as provided by the picker
-      const uri = imageData.uri;
-
+      // Standard structure for React Native Android multi-part
       formData.append('image', {
-        uri: uri,
+        uri: imageData.uri,
         type: imageData.type || 'image/jpeg',
         name: imageData.fileName || `profile_${Date.now()}.jpg`,
       } as any);
 
-      // We use fetch here because Axios sometimes has issues with FormData on Android
-      const response = await fetch("http://localhost:5000/api/users/profile-pic", {
+      // We use the PC IP directly to ensure the phone can find the computer
+      const PC_IP = "10.253.37.129";
+      const uploadUrl = `http://${PC_IP}:5000/api/users/profile-pic`;
+
+      console.log(`🚀 UPLOADING TO: ${uploadUrl}`);
+
+      const response = await fetch(uploadUrl, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json',
-          // Note: Do NOT set Content-Type header when sending FormData with fetch
+          // Do NOT set Content-Type: multipart/form-data here.
         },
         body: formData,
       });
@@ -120,12 +123,13 @@ export const updateProfilePic =
       const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(responseData.message || 'Failed to update profile picture');
+        console.log('❌ SERVER ERROR:', responseData);
+        throw new Error(responseData.message || `Server responded with ${response.status}`);
       }
 
+      console.log('✅ UPLOAD SUCCESSFUL!');
       const { user } = responseData;
 
-      // Update local state with new profile pic, keeping the token
       if (currentState) {
         dispatch(
           setUser({
@@ -137,10 +141,7 @@ export const updateProfilePic =
 
       return responseData;
     } catch (error: any) {
-      console.log(
-        'PROFILE PIC UPDATE ERROR:',
-        error.message
-      );
+      console.log('🔴 UPLOAD ERROR:', error.message);
       throw error;
     }
   };

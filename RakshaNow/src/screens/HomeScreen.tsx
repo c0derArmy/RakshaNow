@@ -17,6 +17,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { triggerTacticalSOS } from '../store/slices/incidentSlice';
 import { Alert } from 'react-native';
+import { LocationService } from '../utils/locationUtils';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
@@ -25,6 +26,19 @@ const HomeScreen = ({ navigation }: any) => {
   const user = useSelector((state: RootState) => state.user.user);
 
   const handleQuickSOS = async () => {
+    // 1. Fetch Location first
+    let location = null;
+    try {
+      const hasPermission = await LocationService.requestPermission();
+      if (hasPermission) {
+        const coords = await LocationService.getCurrentPosition();
+        const address = await LocationService.reverseGeocode(coords.latitude, coords.longitude);
+        location = { ...coords, address };
+      }
+    } catch (e) {
+      console.warn('Quick SOS location fetch failed:', e);
+    }
+
     Alert.alert(
       'Quick SOS',
       'Triggering immediate tactical emergency alert. Are you sure?',
@@ -34,7 +48,7 @@ const HomeScreen = ({ navigation }: any) => {
           text: 'CONFIRM', 
           onPress: async () => {
             try {
-              const incident = await dispatch(triggerTacticalSOS("QUICK SOS: IMMEDIATE ASSISTANCE REQUIRED"));
+              const incident = await dispatch(triggerTacticalSOS("QUICK SOS: IMMEDIATE ASSISTANCE REQUIRED", location));
               navigation.navigate('Confirmation', { incident });
             } catch (error) {
               Alert.alert('Error', 'Failed to trigger Quick SOS');

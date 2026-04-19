@@ -49,7 +49,9 @@ export const setAuthToken = (token: string | null) => {
 
 const axiosClient = axios.create({
   // Use localhost for both iOS and Android (requires adb reverse on Android)
-  baseURL: Platform.OS === "android" ? "http://localhost:5000/api" : "http://localhost:5000/api",
+  // Use PC IP for Android (Physical Device) and localhost/10.0.2.2 for Emulator
+  // Use PC IP for Android (Physical Device) to reach the server over Wi-Fi
+  baseURL: Platform.OS === "android" ? "http://10.253.37.129:5000/api" : "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
   },

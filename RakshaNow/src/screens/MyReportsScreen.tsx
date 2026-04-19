@@ -69,18 +69,7 @@ const MyReportsScreen = ({ navigation }: any) => {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
-      {/* Shared Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => navigation.navigate("Home")} style={styles.iconButton}>
-            <Icon name="arrow-back" size={24} color="#ffb3ac" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>My Reports</Text>
-        </View>
-        <TouchableOpacity style={styles.iconButton} onPress={() => dispatch(fetchIncidents())}>
-          <Icon name="refresh" size={24} color="#ffb3ac" />
-        </TouchableOpacity>
-      </View>
+      
 
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         
