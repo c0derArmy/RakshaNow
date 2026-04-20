@@ -776,16 +776,19 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../store';
 import { registerUser } from '../store/slices/userSlice';
+import { useTheme } from '../utils/theme';
 
 const RegisterScreen = ({ navigation }: any) => {
 
   const dispatch: AppDispatch = useDispatch();
+  const { theme, isDark } = useTheme();
 
   const [activeRole, setActiveRole] =
     useState<"citizen" | "responder">("citizen");
 
   const [loading, setLoading] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -847,9 +850,9 @@ const RegisterScreen = ({ navigation }: any) => {
 
   return (
 
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
 
-      <StatusBar barStyle="light-content" backgroundColor="#132030" />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
 
       <View style={styles.header}>
 
@@ -993,12 +996,22 @@ const RegisterScreen = ({ navigation }: any) => {
                 style={styles.textInput}
                 placeholder="Enter password"
                 placeholderTextColor="#475569"
-                secureTextEntry
+                secureTextEntry={!showPassword}
                 value={formData.password}
                 onChangeText={(text) =>
                   setFormData({ ...formData, password: text })
                 }
               />
+              <TouchableOpacity
+                style={styles.visibilityIcon}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Icon
+                  name={showPassword ? "visibility-off" : "visibility"}
+                  size={20}
+                  color="#64748b"
+                />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -1010,12 +1023,22 @@ const RegisterScreen = ({ navigation }: any) => {
                 style={styles.textInput}
                 placeholder="Confirm password"
                 placeholderTextColor="#475569"
-                secureTextEntry
+                secureTextEntry={!showConfirmPassword}
                 value={formData.confirmPassword}
                 onChangeText={(text) =>
                   setFormData({ ...formData, confirmPassword: text })
                 }
               />
+              <TouchableOpacity
+                style={styles.visibilityIcon}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                <Icon
+                  name={showConfirmPassword ? "visibility-off" : "visibility"}
+                  size={20}
+                  color="#64748b"
+                />
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -1054,7 +1077,7 @@ const RegisterScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea:{ flex:1, backgroundColor:"#061423" },
+  safeArea:{ flex:1 },
   header:{
     height: Platform.OS==="android"?52+(StatusBar.currentHeight||0):52,
     paddingTop: Platform.OS==="android"?StatusBar.currentHeight:0,

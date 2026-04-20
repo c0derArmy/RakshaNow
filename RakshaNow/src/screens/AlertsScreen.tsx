@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import axiosClient from '../utils/axiosClient';
+import { useTheme } from '../utils/theme';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
@@ -73,6 +74,7 @@ const getTypeIcon = (type?: string) => {
 };
 
 const AlertsScreen = ({ navigation }: any) => {
+  const { theme, isDark } = useTheme();
   const [loading, setLoading] = useState(true);
   const [incidents, setIncidents] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -105,7 +107,7 @@ const AlertsScreen = ({ navigation }: any) => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+<SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
         <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -136,8 +138,8 @@ const AlertsScreen = ({ navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} translucent={true} />
       
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -213,7 +215,7 @@ const AlertsScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#061423' },
+  safeArea: { flex: 1 },
   header: { height: 52 + STATUSBAR_HEIGHT, paddingTop: STATUSBAR_HEIGHT, backgroundColor: '#132030', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, zIndex: 50 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconButton: { padding: 4 },

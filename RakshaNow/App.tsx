@@ -21,6 +21,7 @@ import IncidentHistoryScreen from './src/screens/Profile/IncidentHistoryScreen';
 import HowItWorksScreen from './src/screens/HowItWorksScreen';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
+import { ThemeProvider, useTheme } from './src/utils/theme';
 import store, { persistor } from './src/store';
 
 
@@ -56,22 +57,15 @@ const App = () => {
   }
 
   return (
-    <Provider store={store}>
+<Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <NavigationContainer>
-          <Stack.Navigator
-            initialRouteName={initialRoute}
-            screenOptions={{
-              headerStyle: {
-                backgroundColor: '#132030',
-              },
-              headerTintColor: '#ffb3ac',
-              headerTitleStyle: {
-                fontWeight: '800',
-                fontSize: 20,
-              },
-            }}
-        >
+        <ThemeProvider>
+          <NavigationContainer>
+            <Stack.Navigator
+              initialRouteName={initialRoute}
+              screenOptions={{
+              }}
+            >
           <Stack.Screen
             name="Login"
             component={LoginScreen}
@@ -175,7 +169,8 @@ const App = () => {
           />
         
         </Stack.Navigator>
-      </NavigationContainer>
+          </NavigationContainer>
+        </ThemeProvider>
       </PersistGate>
     </Provider>
   );

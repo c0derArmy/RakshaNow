@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useTheme } from '../utils/theme';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
@@ -50,8 +51,9 @@ const GUIDE_STEPS = [
 ];
 
 const HowItWorksScreen = ({ navigation }: any) => {
+  const { theme, isDark } = useTheme();
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
       {/* Top Header */}
@@ -120,7 +122,7 @@ const HowItWorksScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061423',
+    
   },
   header: {
     height: 52 + STATUSBAR_HEIGHT,

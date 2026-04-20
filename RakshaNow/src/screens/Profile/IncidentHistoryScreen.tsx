@@ -5,12 +5,14 @@ import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { RootState, AppDispatch } from '../../store';
 import { fetchIncidents } from '../../store/slices/incidentSlice';
+import { useTheme } from '../../utils/theme';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const IncidentHistoryScreen = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch<AppDispatch>();
+  const { theme, isDark } = useTheme();
   const incidents = useSelector((state: RootState) => state.incidents.incidents);
 
   useEffect(() => {
@@ -18,7 +20,7 @@ const IncidentHistoryScreen = () => {
   }, [dispatch]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
       <View style={styles.header}>
@@ -64,7 +66,7 @@ const IncidentHistoryScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#061423' },
+  safeArea: { flex: 1 },
   header: { height: 52 + STATUSBAR_HEIGHT, paddingTop: STATUSBAR_HEIGHT, backgroundColor: '#132030', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 12 },
   iconButton: { padding: 4 },
   headerTitle: { fontSize: 20, fontWeight: '800', color: '#ffb3ac' },

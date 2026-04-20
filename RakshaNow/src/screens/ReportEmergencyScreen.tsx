@@ -20,11 +20,13 @@ import { triggerTacticalSOS } from '../store/slices/incidentSlice';
 import type { AppDispatch } from '../store';
 import { LocationService, LocationData } from '../utils/locationUtils';
 import { useEffect } from 'react';
+import { useTheme } from '../utils/theme';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const ReportEmergencyScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
+  const { theme, isDark } = useTheme();
   const [incidentText, setIncidentText] = useState('');
   const [landmark, setLandmark] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -50,7 +52,7 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       <KeyboardAvoidingView 
         style={styles.keyboardAvoid} 
@@ -186,7 +188,7 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061423',
+    
   },
   keyboardAvoid: {
     flex: 1,

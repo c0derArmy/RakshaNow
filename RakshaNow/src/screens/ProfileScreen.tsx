@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Image,
   Platform,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
 } from "react-native";
 import { launchImageLibrary } from 'react-native-image-picker';
 
@@ -19,6 +19,7 @@ import Icon from "react-native-vector-icons/MaterialIcons";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "../store";
 import { logoutUser, updateProfilePic, fetchCurrentUser } from "../store/slices/userSlice";
+import { useTheme, themes } from "../utils/theme";
 
 const STATUSBAR_HEIGHT =
   Platform.OS === "android"
@@ -26,6 +27,23 @@ const STATUSBAR_HEIGHT =
     : 0;
 
 const ProfileScreen = ({ navigation }: any) => {
+  const { isDark, toggleTheme, theme } = useTheme();
+  const [tempTheme, setTempTheme] = useState(isDark);
+
+  React.useEffect(() => {
+    setTempTheme(isDark);
+  }, [isDark]);
+
+  const handleThemeToggle = () => {
+    const newTheme = !tempTheme;
+    setTempTheme(newTheme);
+    toggleTheme();
+  };
+
+  const bgColor = theme?.background || (isDark ? '#061423' : '#ffffff');
+  const cardColor = theme?.card || (isDark ? '#1A2744' : '#ffffff');
+  const textColor = theme?.text || (isDark ? '#d6e4f9' : '#1e293b');
+  const textSecColor = theme?.textSecondary || (isDark ? '#94a3b8' : '#64748b');
 
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch<AppDispatch>();
@@ -93,7 +111,7 @@ const ProfileScreen = ({ navigation }: any) => {
 
   return (
 
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
 
       <StatusBar
         barStyle="light-content"
@@ -274,6 +292,34 @@ const ProfileScreen = ({ navigation }: any) => {
 
           </TouchableOpacity>
 
+<TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleThemeToggle}
+          >
+            <View style={styles.menuIconContainer}>
+              <Icon
+                name="brightness-low"
+                size={20}
+                color="#ffb3ac"
+              />
+            </View>
+
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>
+                Theme: {tempTheme ? 'Dark' : 'Light'}
+              </Text>
+              <Text style={styles.menuSubtitle}>
+                Tap to change
+              </Text>
+            </View>
+
+            <Icon
+              name="chevron-right"
+              size={24}
+              color="#64748b"
+            />
+          </TouchableOpacity>
+
         </View>
 
         {/* logout button */}
@@ -343,7 +389,7 @@ const ProfileScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea:{ flex:1, backgroundColor:"#061423" },
+  safeArea:{ flex:1 },
   scrollContainer:{ paddingHorizontal:20, paddingTop:24, paddingBottom:40 },
   profileHeader:{ alignItems:"center", marginBottom:32 },
   avatarContainer:{ position:"relative", marginBottom:16 },

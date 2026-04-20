@@ -4,11 +4,13 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../../store';
 import { fetchMedicalID, updateMedicalID } from '../../store/slices/medicalIdSlice';
+import { useTheme } from '../../utils/theme';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const EmergencyContactsScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
+  const { theme, isDark } = useTheme();
   const user = useSelector((state: RootState) => state.user.user);
   const medicalID = useSelector((state: RootState) => state.medicalId.medicalID);
   const contacts = medicalID?.emergencyContacts || [];
@@ -68,7 +70,7 @@ const EmergencyContactsScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
       <View style={styles.header}>
@@ -138,7 +140,7 @@ const EmergencyContactsScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#061423' },
+  safeArea: { flex: 1 },
   header: { height: 52 + STATUSBAR_HEIGHT, paddingTop: STATUSBAR_HEIGHT, backgroundColor: '#132030', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   iconButton: { padding: 4 },

@@ -19,6 +19,7 @@ import { RootState, AppDispatch } from '../store';
 import { triggerTacticalSOS } from '../store/slices/incidentSlice';
 import { Alert } from 'react-native';
 import { LocationService } from '../utils/locationUtils';
+import { useTheme } from '../utils/theme';
 
 const { width } = Dimensions.get('window');
 const rs = (v: number) => Math.round(v * (width / 375));
@@ -27,6 +28,8 @@ const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 
 const HomeScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => state.user.user);
+  const { isDark, theme } = useTheme();
+  
 
   const [sosPressed, setSosPressed] = React.useState(false);
   const [gpsActive, setGpsActive] = React.useState(false);
@@ -102,8 +105,8 @@ const HomeScreen = ({ navigation }: any) => {
   };
   
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#132030" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={isDark ? "#132030" : "#ffffff"} />
 
       {/* Top App Bar */}
       <View style={styles.header}>
@@ -195,7 +198,7 @@ const HomeScreen = ({ navigation }: any) => {
             onPress={() => navigation.navigate("Responder Dashboard")}
           >
             <View style={[styles.actionIconContainer, { backgroundColor: '#1e2b3b' }]}>
-              <Icon name="command-center" size={24} color="#d32f2f" />
+              <Icon name="warning" size={24} color="#d32f2f" />
             </View>
             <View>
               <Text style={styles.actionTitle}>Command Center</Text>
@@ -281,7 +284,6 @@ const HomeScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061423',
   },
   header: {
     height: 52 + STATUSBAR_HEIGHT,

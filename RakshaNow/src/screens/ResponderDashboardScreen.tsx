@@ -18,6 +18,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSelector } from 'react-redux';
 import { RootState } from '../store';
 import axiosClient from '../utils/axiosClient';
+import { useTheme } from '../utils/theme';
 
 // Responsive utilities
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -174,6 +175,7 @@ const formatTime = (dateString?: string) => {
 
 const ResponderDashboardScreen = ({ navigation }: any) => {
   const user = useSelector((state: RootState) => state.user.user);
+  const { theme, isDark } = useTheme();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -296,7 +298,7 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+<SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
         <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
         
         {/* Header Skeleton */}
@@ -360,10 +362,10 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar
-        barStyle="light-content"
-        backgroundColor="#132030"
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={theme.background}
         translucent={true}
       />
 
@@ -627,7 +629,7 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061423',
+    
   },
   loadingContainer: {
     flex: 1,

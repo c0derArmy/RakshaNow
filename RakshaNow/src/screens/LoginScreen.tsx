@@ -22,10 +22,12 @@ import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { getAuth, GoogleAuthProvider, signInWithCredential, getIdToken } from '@react-native-firebase/auth';
 
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../utils/theme';
 
 const LoginScreen = ({ navigation }: any) => {
 
   const dispatch: AppDispatch = useDispatch();
+  const { theme, isDark } = useTheme();
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
@@ -157,9 +159,9 @@ const LoginScreen = ({ navigation }: any) => {
 
     <SafeAreaProvider>
 
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
 
-        <StatusBar barStyle="light-content" backgroundColor="#061423" />
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
 
 
         <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -465,7 +467,6 @@ const styles = StyleSheet.create({
 
 safeArea:{
 flex:1,
-backgroundColor:'#061423'
 },
 
 scrollContainer:{

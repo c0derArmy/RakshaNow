@@ -20,11 +20,13 @@ import { AppDispatch } from '../store';
 import Voice, { SpeechResultsEvent, SpeechErrorEvent } from '@react-native-voice/voice';
 import { NativeModules } from 'react-native';
 import { LocationService, LocationData } from '../utils/locationUtils';
+import { useTheme } from '../utils/theme';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const VoiceReportScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
+  const { theme, isDark } = useTheme();
   const [isRecording, setIsRecording] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [results, setResults] = useState<string[]>([]);
@@ -165,7 +167,7 @@ const VoiceReportScreen = ({ navigation }: any) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
       
    
@@ -291,7 +293,7 @@ const VoiceReportScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061423',
+    
   },
   header: {
     height: 52 + STATUSBAR_HEIGHT,

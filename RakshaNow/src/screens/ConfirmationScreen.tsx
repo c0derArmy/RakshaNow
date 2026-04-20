@@ -12,10 +12,12 @@ import {
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/MaterialIcons';
+import { useTheme } from '../utils/theme';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const ConfirmationScreen = ({ navigation, route }: any) => {
+  const { theme, isDark } = useTheme();
   const { incident } = route.params || {};
 
   // Extract values with sensible defaults
@@ -41,7 +43,7 @@ const ConfirmationScreen = ({ navigation, route }: any) => {
   const service = getServiceInfo(type);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar barStyle="light-content" backgroundColor="#061423" translucent={true} />
       
       {/* Background Map Image (Faded) */}
@@ -157,7 +159,7 @@ const ConfirmationScreen = ({ navigation, route }: any) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#061423',
+    
   },
   backgroundImage: {
     position: 'absolute',
@@ -411,7 +413,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingBottom: Platform.OS === 'ios' ? 32 : 24,
     paddingTop: 16,
-    backgroundColor: '#061423', // Matches background to cover scroll
+     // Matches background to cover scroll
   },
   primaryButtonContainer: {
     shadowColor: '#d32f2f',
