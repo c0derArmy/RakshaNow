@@ -9,6 +9,7 @@ import {
   Image,
   ImageBackground,
   Platform,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
@@ -19,6 +20,8 @@ import { triggerTacticalSOS } from '../store/slices/incidentSlice';
 import { Alert } from 'react-native';
 import { LocationService } from '../utils/locationUtils';
 
+const { width } = Dimensions.get('window');
+const rs = (v: number) => Math.round(v * (width / 375));
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
 const HomeScreen = ({ navigation }: any) => {
@@ -100,7 +103,7 @@ const HomeScreen = ({ navigation }: any) => {
   
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor="#132030" translucent={true} />
+      <StatusBar barStyle="light-content" backgroundColor="#132030" />
 
       {/* Top App Bar */}
       <View style={styles.header}>
@@ -186,9 +189,25 @@ const HomeScreen = ({ navigation }: any) => {
             </View>
           </TouchableOpacity>
 
-          {/* How it works Card */}
+          {/* Command Center - Only for Responders */}
+          {user?.role === 'RESPONDER' && (
           <TouchableOpacity activeOpacity={0.9} style={styles.actionCard}
-          onPress={() => navigation.navigate("How It Works")}
+            onPress={() => navigation.navigate("Responder Dashboard")}
+          >
+            <View style={[styles.actionIconContainer, { backgroundColor: '#1e2b3b' }]}>
+              <Icon name="command-center" size={24} color="#d32f2f" />
+            </View>
+            <View>
+              <Text style={styles.actionTitle}>Command Center</Text>
+              <Text style={styles.actionSubtitle}>View emergency cases</Text>
+            </View>
+          </TouchableOpacity>
+          )}
+
+          {/* How it works Card - For Citizens only */}
+          {user?.role !== 'RESPONDER' && (
+          <TouchableOpacity activeOpacity={0.9} style={styles.actionCard}
+            onPress={() => navigation.navigate("How It Works")}
           >
             <View style={[styles.actionIconContainer, { backgroundColor: '#1e2b3b' }]}>
               <Icon name="help-outline" size={24} color="#76daa3" />
@@ -198,6 +217,7 @@ const HomeScreen = ({ navigation }: any) => {
               <Text style={styles.actionSubtitle}>Safety guide</Text>
             </View>
           </TouchableOpacity>
+          )}
         </View>
 
         {/* Dynamic Safety Tip Card */}

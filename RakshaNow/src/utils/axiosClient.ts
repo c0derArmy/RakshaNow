@@ -37,20 +37,20 @@
 
 import axios from "axios";
 import { Platform } from "react-native";
-
-let authToken: string | null = null;
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
- * Dedicated helper to inject token from Redux without causing circular imports
+ * Helper to inject token from Redux without causing circular imports
  */
-export const setAuthToken = (token: string | null) => {
-  authToken = token;
+export const setAuthToken = async (token: string | null) => {
+  if (token) {
+    await AsyncStorage.setItem('@raksha_token', token);
+  } else {
+    await AsyncStorage.removeItem('@raksha_token');
+  }
 };
 
 const axiosClient = axios.create({
-  // Use localhost for both iOS and Android (requires adb reverse on Android)
-  // Use PC IP for Android (Physical Device) and localhost/10.0.2.2 for Emulator
-  // Use PC IP for Android (Physical Device) to reach the server over Wi-Fi
   baseURL: Platform.OS === "android" ? "http://10.115.15.129:5000/api" : "http://localhost:5000/api",
   headers: {
     "Content-Type": "application/json",
@@ -59,9 +59,11 @@ const axiosClient = axios.create({
 });
 
 axiosClient.interceptors.request.use(
-  (config) => {
-    if (authToken) {
-      config.headers.Authorization = `Bearer ${authToken}`;
+  async (config) => {
+    // Always get fresh token from storage
+    const token = await AsyncStorage.getItem('@raksha_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },

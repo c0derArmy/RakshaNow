@@ -74,7 +74,12 @@ const LoginScreen = ({ navigation }: any) => {
 
       Alert.alert("Success", "Login Successfully");
 
-      navigation.replace("Home");
+      const userRole = result?.user?.role?.toUpperCase();
+      if (userRole === 'RESPONDER') {
+        navigation.replace("Responder Dashboard");
+      } else {
+        navigation.replace("Home");
+      }
 
 
     } catch (error: any) {
@@ -128,11 +133,17 @@ const LoginScreen = ({ navigation }: any) => {
         throw new Error('Firebase auth token not found');
       }
 
-      await dispatch(googleLogin(firebaseToken));
+      const googleResult: any = await dispatch(googleLogin(firebaseToken));
 
       setLoading(false);
       Alert.alert('Success', 'Google login successful');
-      navigation.replace('Home');
+
+      const userRole = googleResult?.payload?.user?.role?.toUpperCase();
+      if (userRole === 'RESPONDER') {
+        navigation.replace("Responder Dashboard");
+      } else {
+        navigation.replace("Home");
+      }
     } catch (e: any) {
       setLoading(false);
       console.log('Google Sign-In error:', e);

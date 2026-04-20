@@ -51,6 +51,7 @@ const CustomDrawerContent = (props: DrawerContentComponentProps) => {
   };
   const menuItems = [
     { label: 'HOME', icon: 'home', route: 'Home' },
+    ...(user?.role === 'RESPONDER' ? [{ label: 'COMMAND CENTER', icon: 'dashboard', route: 'Responder Dashboard' as const }] : []),
     { label: 'REPORTS', icon: 'assignment', route: 'My Reports' },
     { label: 'ALERTS', icon: 'notifications', route: 'Alerts' },
     { label: 'HOW IT WORKS', icon: 'help-outline', route: 'How It Works' },

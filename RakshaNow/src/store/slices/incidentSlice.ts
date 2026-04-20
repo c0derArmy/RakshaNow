@@ -12,6 +12,11 @@ export interface Incident {
   landmark?: string;
   status?: string;
   reportedAt?: string;
+  userId?: string;
+  userName?: string;
+  userPhone?: string;
+  assignedTo?: string;
+  assignedResponderName?: string;
 }
 
 interface IncidentState {
@@ -44,9 +49,31 @@ export default incidentSlice.reducer;
 export const fetchIncidents = () => async (dispatch: AppDispatch) => {
   try {
     const response = await axiosClient.get('/incidents');
+    console.log('API Response:', response.data);
+    const incidentsData = Array.isArray(response.data) ? response.data : response.data.incidents || [];
+    dispatch(setIncidents(incidentsData));
+    return incidentsData;
+  } catch (error: any) {
+    console.error('Failed to fetch incidents:', error?.response?.data || error.message);
+    throw error;
+  }
+};
+
+export const fetchMyIncidents = () => async (dispatch: AppDispatch) => {
+  try {
+    const response = await axiosClient.get('/incidents/my');
     dispatch(setIncidents(response.data));
   } catch (error) {
-    console.error('Failed to fetch incidents:', error);
+    console.error('Failed to fetch my incidents:', error);
+  }
+};
+
+export const fetchResponderIncidents = () => async (dispatch: AppDispatch) => {
+  try {
+    const response = await axiosClient.get('/incidents/responder');
+    dispatch(setIncidents(response.data));
+  } catch (error) {
+    console.error('Failed to fetch responder incidents:', error);
   }
 };
 

@@ -5,11 +5,49 @@ const Incident = require('../models/Incident');
 // @access  Private
 exports.getIncidents = async (req, res) => {
   try {
-    const incidents = await Incident.find({ userId: req.user.id }).sort({ reportedAt: -1 });
-    res.status(200).json(incidents);
+    const limit = parseInt(req.query.limit) || 10;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+    
+    // Responder role gets all incidents, citizen gets only their own
+    let incidents, total;
+    if (req.user.role === 'RESPONDER') {
+      incidents = await Incident.find()
+        .sort({ reportedAt: -1 })
+        .limit(limit)
+        .skip(skip);
+      total = await Incident.countDocuments();
+    } else {
+      incidents = await Incident.find({ userId: req.user.id })
+        .sort({ reportedAt: -1 })
+        .limit(limit)
+        .skip(skip);
+      total = await Incident.countDocuments({ userId: req.user.id });
+    }
+    res.status(200).json({
+      incidents,
+      pagination: { page, limit, total, pages: Math.ceil(total / limit) }
+    });
   } catch (error) {
     console.error("Get Incidents Error:", error);
     res.status(500).json({ error: 'Failed to fetch incidents' });
+  }
+};
+
+// @desc    Get all incidents (for responders)
+// @route   GET /api/incidents/all
+// @access  Private (Responder only)
+exports.getAllIncidents = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const incidents = await Incident.find()
+      .sort({ reportedAt: -1 })
+      .limit(limit)
+      .populate('userId', 'name phone');
+    res.status(200).json(incidents);
+  } catch (error) {
+    console.error("Get All Incidents Error:", error);
+    res.status(500).json({ error: 'Failed to fetch all incidents' });
   }
 };
 
@@ -35,5 +73,28 @@ exports.createIncident = async (req, res) => {
   } catch (error) {
     console.error("Create Incident Error:", error);
     res.status(500).json({ error: 'Failed to create incident' });
+  }
+};
+
+// @desc    Update incident status
+// @route   PUT /api/incidents/:id
+// @access  Private (Responder only)
+exports.updateIncidentStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const incident = await Incident.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    
+    if (!incident) {
+      return res.status(404).json({ error: 'Incident not found' });
+    }
+    
+    res.status(200).json(incident);
+  } catch (error) {
+    console.error("Update Incident Error:", error);
+    res.status(500).json({ error: 'Failed to update incident' });
   }
 };

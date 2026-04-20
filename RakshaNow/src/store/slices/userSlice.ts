@@ -2,6 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axios from 'axios';
 import axiosClient, { setAuthToken } from '../../utils/axiosClient';
 import { AppDispatch } from '../index';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserState {
   user: any | null;
@@ -19,11 +20,15 @@ const userSlice = createSlice({
       if (action.payload === null) {
         state.user = null;
         setAuthToken(null);
+        AsyncStorage.removeItem('@raksha_user');
+        AsyncStorage.removeItem('@raksha_token');
       } else {
-        // Merge token into user object so interceptor can access state.user.user.token
         const { token, user } = action.payload;
-        state.user = user ? { ...user, token } : null;
+        const userWithToken = user ? { ...user, token } : null;
+        state.user = userWithToken;
         setAuthToken(token);
+        AsyncStorage.setItem('@raksha_user', JSON.stringify(userWithToken));
+        if (token) AsyncStorage.setItem('@raksha_token', token);
       }
     },
   },

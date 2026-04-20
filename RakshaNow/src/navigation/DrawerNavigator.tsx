@@ -4,6 +4,7 @@ import HomeScreen from '../screens/HomeScreen';
 import MyReportsScreen from '../screens/MyReportsScreen';
 import AlertsScreen from '../screens/AlertsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import ResponderDashboardScreen from '../screens/ResponderDashboardScreen';
 import CustomDrawerContent from '../components/CustomDrawerContent';
 
 const Drawer = createDrawerNavigator();
@@ -35,6 +36,10 @@ const DrawerNavigator = () => {
       <Drawer.Screen 
         name="Alerts" 
         component={AlertsScreen} 
+      />
+      <Drawer.Screen 
+        name="Responder Dashboard" 
+        component={ResponderDashboardScreen} 
       />
       <Drawer.Screen 
         name="Profile" 

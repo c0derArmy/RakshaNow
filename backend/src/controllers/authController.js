@@ -56,7 +56,7 @@ exports.registerUser = async (req, res) => {
 
     // JWT TOKEN
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
@@ -87,7 +87,7 @@ exports.loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' });
     res.status(200).json({ token, user: { id: user._id, name: user.name, phone: user.phone, email: user.email, role: user.role } });
   } catch (error) {
     console.error("Login Error:", error);
@@ -139,7 +139,7 @@ exports.googleLogin = async (req, res) => {
 
     // generate JWT
     const token = jwt.sign(
-      { id: user._id },
+      { id: user._id, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
@@ -150,6 +150,8 @@ exports.googleLogin = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        phone: user.phone,
+        role: user.role,
         profilePic: user.profilePic
       }
     });

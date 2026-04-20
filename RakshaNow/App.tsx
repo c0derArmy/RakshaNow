@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 //import { Text } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -19,7 +20,8 @@ import MedicalIDScreen from './src/screens/Profile/MedicalIDScreen';
 import IncidentHistoryScreen from './src/screens/Profile/IncidentHistoryScreen';
 import HowItWorksScreen from './src/screens/HowItWorksScreen';
 import { Provider } from 'react-redux';
-import store from './src/store';
+import { PersistGate } from 'redux-persist/integration/react';
+import store, { persistor } from './src/store';
 
 
 
@@ -29,14 +31,24 @@ const Stack = createNativeStackNavigator();
 
 const App = () => {
   const [isSplashVisible, setIsSplashVisible] = useState(true);
+  const [initialRoute, setInitialRoute] = useState('Login');
 
   useEffect(() => {
-    // 3-second Splash Screen timer
-    const timer = setTimeout(() => {
+    const checkLogin = async () => {
+      try {
+        const userData = await AsyncStorage.getItem('@raksha_user');
+        if (userData) {
+          const parsed = JSON.parse(userData);
+          if (parsed?.token) {
+            setInitialRoute('Home');
+          }
+        }
+      } catch (e) {
+        console.log('Error checking login:', e);
+      }
       setIsSplashVisible(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
+    };
+    checkLogin();
   }, []);
 
   if (isSplashVisible) {
@@ -45,20 +57,20 @@ const App = () => {
 
   return (
     <Provider store={store}>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Login"
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: '#132030',
-            },
-            headerTintColor: '#ffb3ac',
-            headerTitleStyle: {
-              fontWeight: '800',
-              fontSize: 20,
-            },
-            // Android status bar handled in individual screens
-          }}
+      <PersistGate loading={null} persistor={persistor}>
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName={initialRoute}
+            screenOptions={{
+              headerStyle: {
+                backgroundColor: '#132030',
+              },
+              headerTintColor: '#ffb3ac',
+              headerTitleStyle: {
+                fontWeight: '800',
+                fontSize: 20,
+              },
+            }}
         >
           <Stack.Screen
             name="Login"
@@ -92,6 +104,7 @@ const App = () => {
             options={{
               presentation: 'transparentModal',
               animation: 'slide_from_bottom',
+              headerShown: false,
             }}
           />
 
@@ -153,9 +166,17 @@ const App = () => {
               headerShown: false,
             }}
           />
-       
+          <Stack.Screen
+            name="Alerts"
+            component={AlertsScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+        
         </Stack.Navigator>
       </NavigationContainer>
+      </PersistGate>
     </Provider>
   );
 };
