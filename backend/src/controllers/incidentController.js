@@ -98,3 +98,36 @@ exports.updateIncidentStatus = async (req, res) => {
     res.status(500).json({ error: 'Failed to update incident' });
   }
 };
+
+// @desc    Notify incident reporter
+// @route   POST /api/incidents/:id/notify
+// @access  Private (Responder only)
+exports.notifyReporter = async (req, res) => {
+  try {
+    const incident = await Incident.findById(req.params.id).populate('userId', 'name phone');
+    
+    if (!incident) {
+      return res.status(404).json({ error: 'Incident not found' });
+    }
+
+    const userPhone = incident.userId?.phone;
+    
+    if (!userPhone) {
+      return res.status(400).json({ error: 'User phone number not found' });
+    }
+
+    // Get responder info
+    const responderName = req.user.name || 'A Responder';
+    
+    // Send SMS notification
+    const { sendSMS } = require('../utils/twilioUtils');
+    const message = `RakshaNow: ${responderName} is responding to your emergency report "${incident.type}". They will arrive at your location shortly. Stay safe!`;
+    
+    await sendSMS(userPhone, message);
+    
+    res.status(200).json({ message: 'Notification sent successfully' });
+  } catch (error) {
+    console.error("Notify Reporter Error:", error);
+    res.status(500).json({ error: 'Failed to send notification' });
+  }
+};

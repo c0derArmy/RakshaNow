@@ -10,8 +10,12 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Modal,
+  Pressable,
+  Animated,
+  Dimensions,
 } from "react-native";
-import { launchImageLibrary } from 'react-native-image-picker';
+import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/MaterialIcons";
@@ -48,21 +52,51 @@ const ProfileScreen = ({ navigation }: any) => {
   const user = useSelector((state: RootState) => state.user.user);
   const dispatch = useDispatch<AppDispatch>();
   const [loading, setLoading] = React.useState(false);
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [showFullImage, setShowFullImage] = useState(false);
+  const [imgScale, setImgScale] = useState(1);
+  const [imgW, setImgW] = useState(300);
+  const [imgH, setImgH] = useState(300);
+
+  const zoomIn = () => {
+    const newScale = Math.min(imgScale + 0.5, 4);
+    setImgScale(newScale);
+    setImgW(300 * newScale);
+    setImgH(300 * newScale);
+  };
+
+  const zoomOut = () => {
+    const newScale = Math.max(imgScale - 0.5, 0.5);
+    setImgScale(newScale);
+    setImgW(300 * newScale);
+    setImgH(300 * newScale);
+  };
+
+  const resetZoom = () => {
+    setImgScale(1);
+    setImgW(300);
+    setImgH(300);
+  };
 
   React.useEffect(() => {
     dispatch(fetchCurrentUser() as any);
   }, [dispatch]);
 
-  const handleImagePick = async () => {
+  const pickImage = async (source: 'camera' | 'gallery') => {
+    setShowImagePicker(false);
+    
     const options: any = {
       mediaType: 'photo',
       includeBase64: false,
       maxHeight: 1000,
       maxWidth: 1000,
+      quality: 0.8,
     };
 
     try {
-      const response = await launchImageLibrary(options);
+      const response = source === 'camera' 
+        ? await launchCamera(options)
+        : await launchImageLibrary(options);
       
       if (response.didCancel || !response.assets || response.assets.length === 0) {
         return;
@@ -74,7 +108,13 @@ const ProfileScreen = ({ navigation }: any) => {
       Alert.alert("Success", "Profile picture updated!");
     } catch (error: any) {
       console.log("Profile update error:", error);
-      Alert.alert("Error", error?.message || "Failed to update profile picture.");
+      const errorMessage = error?.message || "Failed to update profile picture.";
+      
+      if (errorMessage.includes("Unable to connect") || errorMessage.includes("network") || errorMessage.includes("ECONNREFUSED") || errorMessage.includes("ETIMEDOUT")) {
+        Alert.alert("Connection Error", "Unable to connect to server. Make sure your phone is on the same WiFi as the computer running the backend.");
+      } else {
+        Alert.alert("Error", errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -127,7 +167,7 @@ const ProfileScreen = ({ navigation }: any) => {
         {/* user info */}
         <View style={styles.profileHeader}>
 
-          <View style={styles.avatarContainer}>
+          <TouchableOpacity style={styles.avatarContainer} onPress={() => setShowFullImage(true)} activeOpacity={0.8}>
 
             <Image
               source={{
@@ -142,6 +182,7 @@ const ProfileScreen = ({ navigation }: any) => {
               </View>
             )}
 
+            {/* Profile edit button disabled - network issue 
             <TouchableOpacity 
               style={styles.editBadge}
               onPress={handleImagePick}
@@ -152,9 +193,21 @@ const ProfileScreen = ({ navigation }: any) => {
                 size={14}
                 color="#061423"
               />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+            
+<TouchableOpacity 
+              style={styles.editBadge}
+              onPress={() => setShowImagePicker(true)}
+              disabled={loading}
+            >
+              <Icon
+                name="edit"
+                size={14}
+                color="#061423"
+              />
+</TouchableOpacity>
 
-          </View>
+          </TouchableOpacity>
 
           <Text style={styles.userName}>
             {user?.name || "User Name"}
@@ -384,6 +437,77 @@ const ProfileScreen = ({ navigation }: any) => {
 
       </View>
 
+      {/* Image Picker Modal */}
+      <Modal
+        visible={showImagePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowImagePicker(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowImagePicker(false)}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Change Profile Picture</Text>
+            
+            <TouchableOpacity style={styles.modalOption} onPress={() => pickImage('camera')}>
+              <Icon name="camera-alt" size={24} color="#ffb3ac" />
+              <Text style={styles.modalOptionText}>Take Photo</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.modalOption} onPress={() => pickImage('gallery')}>
+              <Icon name="photo-library" size={24} color="#ffb3ac" />
+              <Text style={styles.modalOptionText}>Choose from Gallery</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.modalOption} onPress={() => setShowImagePicker(false)}>
+              <Icon name="cancel" size={24} color="#ff6b6b" />
+              <Text style={[styles.modalOptionText, { color: '#ff6b6b' }]}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Full Image Modal with Tap to Zoom */}
+      <Modal
+        visible={showFullImage}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => {
+          resetZoom();
+          setShowFullImage(false);
+        }}
+      >
+        <View style={styles.fullImageOverlay}>
+          <View style={styles.zoomControlsTop}>
+            <TouchableOpacity style={styles.zoomBtn} onPress={zoomOut}>
+              <Icon name="remove" size={24} color="#fff" />
+            </TouchableOpacity>
+            <Text style={styles.zoomText}>{Math.round(imgScale * 100)}%</Text>
+            <TouchableOpacity style={styles.zoomBtn} onPress={zoomIn}>
+              <Icon name="add" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.zoomBtn, styles.resetBtn]} onPress={resetZoom}>
+              <Icon name="refresh" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity style={styles.closeBtn} onPress={() => setShowFullImage(false)}>
+            <Icon name="close" size={28} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{
+                uri: user?.profilePic || "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80"
+              }}
+              style={{ width: imgW, height: imgH }}
+              resizeMode="contain"
+            />
+          </View>
+          <TouchableOpacity 
+            style={styles.bgTapArea} 
+            onPress={() => setShowFullImage(false)}
+          />
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 };
@@ -402,6 +526,90 @@ const styles = StyleSheet.create({
   menuSection:{ marginBottom:32 },
   sectionTitle:{ fontSize:12, fontWeight:"800", color:"#64748b", marginBottom:16 },
   menuItem:{ flexDirection:"row", alignItems:"center", backgroundColor:"#132030", padding:16, borderRadius:16, marginBottom:12 },
+  fullImageOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.95)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImage: {
+    width: 300,
+    height: 300,
+  },
+  imageScroll: {
+    flex: 1,
+  },
+  imageScrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bgTapArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    padding: 8,
+    zIndex: 10,
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    padding: 8,
+    zIndex: 11,
+  },
+  zoomControlsTop: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    right: 80,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 24,
+    gap: 12,
+    zIndex: 10,
+  },
+  zoomBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  resetBtn: {
+    marginLeft: 8,
+  },
+  zoomText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+    minWidth: 50,
+    textAlign: 'center',
+  },
+  tapToClose: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   menuIconWrapper:{ width:40, height:40, borderRadius:12, backgroundColor:"#1e2b3b", alignItems:"center", justifyContent:"center", marginRight:16 },
   menuTextContainer:{ flex:1 },
   menuTitle:{ fontSize:16, fontWeight:"700", color:"#d6e4f9" },
@@ -419,7 +627,40 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-  }
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#132030',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#d6e4f9',
+    textAlign: 'center',
+    marginBottom: 24,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#1e2b3b',
+    borderRadius: 12,
+    marginBottom: 12,
+    gap: 16,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#d6e4f9',
+  },
 });
 
 export default ProfileScreen;

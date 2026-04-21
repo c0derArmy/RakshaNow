@@ -36,7 +36,6 @@
 
 
 import axios from "axios";
-import { Platform } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
@@ -50,8 +49,11 @@ export const setAuthToken = async (token: string | null) => {
   }
 };
 
+// REPLACE THIS URL after deploying backend to cloud
+// Local: "http://172.16.19.69:5000/api"
+// Cloud: "https://your-cloud-url.com/api"
 const axiosClient = axios.create({
-  baseURL: Platform.OS === "android" ? "http://10.115.15.129:5000/api" : "http://localhost:5000/api",
+  baseURL: "http://172.16.19.69:5000/api",
   headers: {
     "Content-Type": "application/json",
   },

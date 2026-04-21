@@ -2,7 +2,7 @@ const Incident = require('../models/Incident');
 const User = require('../models/User');
 const MedicalID = require('../models/MedicalID');
 const { analyzeEmergency } = require('../utils/aiUtils');
-const { dispatchAutomatedCalls } = require('../utils/twilioUtils');
+const { dispatchEmergencyCalls, sendEmergencySMS } = require('../utils/twilioUtils');
 
 exports.triggerSOS = async (req, res) => {
   try {
@@ -25,14 +25,42 @@ exports.triggerSOS = async (req, res) => {
 
     // 3. Fetch Medical ID for Emergency Contacts
     const medicalInfo = await MedicalID.findOne({ userId: user._id });
+    const emergencyContacts = medicalInfo?.emergencyContacts || [];
 
-    // 4. Trigger Twilio Dispatch
-    if (medicalInfo && medicalInfo.emergencyContacts && medicalInfo.emergencyContacts.length > 0) {
-      // Don't await this to keep the SOS response fast
-      dispatchAutomatedCalls(medicalInfo.emergencyContacts, user.name, aiAnalysis.classification);
+    // 4. Trigger Emergency Calls and SMS to all contacts
+    if (emergencyContacts.length > 0) {
+      // Make emergency calls to contacts
+      dispatchEmergencyCalls(
+        emergencyContacts, 
+        user.name, 
+        user.phone, 
+        location, 
+        aiAnalysis.classification
+      );
+      
+      // Send emergency SMS to contacts
+      sendEmergencySMS(
+        emergencyContacts, 
+        user.name, 
+        user.phone, 
+        location, 
+        aiAnalysis.classification
+      );
     }
 
-    res.status(200).json({ success: true, message: 'SOS Dispatched', incident: newIncident });
+    // 5. Also send SMS to user's own phone
+    if (user.phone) {
+      const userMessage = `🚨 RAKSHANOW ALERT 🚨\n\nYour SOS has been triggered.\nEmergency contacts have been notified.\nStay calm and stay safe. Help is on the way!`;
+      const { sendSMS } = require('../utils/twilioUtils');
+      sendSMS(user.phone, userMessage);
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'SOS Dispatched', 
+      incident: newIncident,
+      contactsNotified: emergencyContacts.length
+    });
   } catch (error) {
     console.error("🚨 CRITICAL SOS ERROR:", {
       message: error.message,

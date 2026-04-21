@@ -13,6 +13,8 @@ import {
   RefreshControl,
   Animated,
   Dimensions,
+  Linking,
+  Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSelector } from 'react-redux';
@@ -184,6 +186,8 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [allIncidents, setAllIncidents] = useState<any[]>([]);
+  const [showMap, setShowMap] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<any>(null);
   const limit = 10;
 
   useEffect(() => {
@@ -243,7 +247,30 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
     }
   };
 
-  const handleRespond = (incident: CitizenIncident) => {
+  const handleNavigate = (incident: CitizenIncident) => {
+    const address = incident.location?.address || incident.landmark || '';
+    const lat = incident.location?.lat;
+    const lng = incident.location?.lng;
+    
+    if (lat && lng) {
+      // Open Google Maps app directly
+      Linking.openURL(`google.navigation:q=${lat},${lng}&mode=d`).catch(() => {
+        // Fallback to Apple Maps on iOS
+        if (Platform.OS === 'ios') {
+          Linking.openURL(`http://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`);
+        } else {
+          // Web fallback
+          Linking.openURL(`https://www.google.com/maps/dir/${lat},${lng}`);
+        }
+      });
+    } else if (address) {
+      Linking.openURL(`https://www.google.com/maps/search/${encodeURIComponent(address)}`);
+    } else {
+      Alert.alert('No Location', 'No location data available for this incident.');
+    }
+  };
+
+  const handleRespond = async (incident: CitizenIncident) => {
     Alert.alert(
       'Respond to Emergency',
       `Accept assignment for this ${incident.type || 'emergency'} case at ${incident.location?.address || incident.landmark || 'Unknown location'}?`,
@@ -251,15 +278,23 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
         { text: 'Decline', style: 'cancel' },
         {
           text: 'Accept',
-          onPress: () => {
-            Alert.alert('Assigned', 'You have accepted this emergency case. Navigate to location.');
+          onPress: async () => {
+            try {
+              await axiosClient.put(`/incidents/${incident._id}`, { status: 'DISPATCHED' });
+              await axiosClient.post(`/incidents/${incident._id}/notify`);
+              Alert.alert('Assigned', 'You have accepted this case. The reporter has been notified.');
+              loadIncidents();
+            } catch (error: any) {
+              console.error('Respond error:', error);
+              Alert.alert('Error', 'Failed to accept case. Please try again.');
+            }
           },
         },
       ]
     );
   };
 
-  const handleResolve = (incident: CitizenIncident) => {
+  const handleResolve = async (incident: CitizenIncident) => {
     Alert.alert(
       'Resolve Incident',
       'Mark this incident as resolved?',
@@ -267,8 +302,15 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Resolve',
-          onPress: () => {
-            Alert.alert('Resolved', 'Incident marked as resolved.');
+          onPress: async () => {
+            try {
+              await axiosClient.put(`/incidents/${incident._id}`, { status: 'RESOLVED' });
+              Alert.alert('Resolved', 'Incident marked as resolved.');
+              loadIncidents();
+            } catch (error: any) {
+              console.error('Resolve error:', error);
+              Alert.alert('Error', 'Failed to resolve incident. Please try again.');
+            }
           },
         },
       ]
@@ -559,12 +601,7 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
                 <View style={styles.cardActions}>
                   <TouchableOpacity
                     style={[styles.actionButton, styles.navigateButton]}
-                    onPress={() => {
-                      Alert.alert(
-                        'Navigate',
-                        `Open maps to ${incident.location?.address || incident.landmark || 'this location'}?`
-                      );
-                    }}
+                    onPress={() => handleNavigate(incident)}
                   >
                     <Icon name="navigation" size={18} color="#fff" />
                     <Text style={styles.actionButtonText}>NAVIGATE</Text>
@@ -906,6 +943,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#94a3b8',
+  },
+  mapModalContainer: {
+    flex: 1,
+    backgroundColor: '#061423',
+  },
+  mapHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: '#132030',
+    zIndex: 10,
+  },
+  mapHeaderTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  mapView: {
+    flex: 1,
   },
 });
 
