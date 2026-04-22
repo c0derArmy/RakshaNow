@@ -49,6 +49,10 @@ exports.updateProfilePic = async (req, res) => {
       { new: true }
     ).select('-password');
 
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
     console.log('💾 Database updated with new profile pic URL');
 
     res.json({
@@ -97,6 +101,10 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("Update Profile Error:", error);
+    if (error.code === 11000) {
+      const duplicateField = Object.keys(error.keyPattern || {})[0] || 'field';
+      return res.status(400).json({ message: `${duplicateField} already in use` });
+    }
     res.status(500).json({ message: "Failed to update profile" });
   }
 };
@@ -120,6 +128,10 @@ exports.updateLiveLocation = async (req, res) => {
       },
       { new: true }
     );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
     
     res.status(200).json({ 
       success: true, 

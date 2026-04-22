@@ -69,6 +69,7 @@ const getTypeIcon = (type?: string) => {
     case 'FIRE': return 'fire-truck';
     case 'MEDICAL': return 'medical-services';
     case 'POLICE': return 'local-police';
+    case 'CRIME': return 'local-police';
     default: return 'report-problem';
   }
 };

@@ -141,7 +141,7 @@ const signInWithGoogle = async () => {
 
       Alert.alert('Success', 'Google login successful');
 
-      const userRole = googleResult?.payload?.user?.role?.toUpperCase();
+      const userRole = googleResult?.user?.role?.toUpperCase();
       if (userRole === 'RESPONDER') {
         navigation.replace("Responder Dashboard");
       } else {

@@ -156,8 +156,7 @@ const VoiceReportScreen = ({ navigation }: any) => {
     setSubmitting(true);
     try {
       // PASS REAL GPS DATA TO THE BACKEND
-      const resultAction = await dispatch(triggerTacticalSOS(finalTranscript, location));
-      const incident = resultAction.payload;
+      const incident = await dispatch(triggerTacticalSOS(finalTranscript, location));
       navigation.replace('Confirmation', { incident });
     } catch (error) {
       Alert.alert('Error', 'Failed to submit voice report. Please try again.');

@@ -12,7 +12,7 @@ const incidentSchema = new mongoose.Schema({
   landmark: { type: String },
   transcript: { type: String },
   desc: { type: String },
-  status: { type: String, enum: ['CRITICAL', 'DISPATCHED', 'RESOLVED', 'ACTIVE'], default: 'CRITICAL', index: true },
+  status: { type: String, enum: ['CRITICAL', 'PENDING', 'DISPATCHED', 'ASSIGNED', 'RESOLVED', 'ACTIVE'], default: 'CRITICAL', index: true },
   reportedAt: { type: Date, default: Date.now, index: true }
 });
 

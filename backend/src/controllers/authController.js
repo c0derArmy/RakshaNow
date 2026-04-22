@@ -59,6 +59,10 @@ exports.registerUser = async (req, res) => {
 
   } catch (error) {
     console.error("Registration Error:", error);
+    if (error.code === 11000) {
+      const duplicateField = Object.keys(error.keyPattern || {})[0] || 'field';
+      return res.status(400).json({ message: `${duplicateField} already in use` });
+    }
     res.status(500).json({ error: "Registration failed" });
   }
 };
@@ -67,6 +71,10 @@ exports.loginUser = async (req, res) => {
   try {
     console.log(`>>> [${new Date().toLocaleTimeString()}] LOGIN REQUEST:`, { phone: req.body.phone });
     const { phone, password } = req.body;
+
+    if (!phone || !password) {
+      return res.status(400).json({ message: 'Phone and password are required' });
+    }
 
     const cleanPhone = phone.replace(/\D/g, "");
     const user = await User.findOne({ phone: cleanPhone });

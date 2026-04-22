@@ -80,7 +80,8 @@ exports.triggerSOS = async (req, res) => {
         transcript: newIncident.transcript,
         status: newIncident.status,
         location: newIncident.location,
-        createdAt: newIncident.createdAt
+        reportedAt: newIncident.reportedAt,
+        createdAt: newIncident.reportedAt
       },
       contactsNotified: emergencyContacts.length
     });

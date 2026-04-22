@@ -5,14 +5,12 @@ const MedicalID = require('../models/MedicalID');
 // @access  Private
 exports.getMedicalId = async (req, res) => {
   try {
-    // Only allow fetching their own profile or if they are admin/responder
-    // We assume self lookup for now based on req.user.id
-    const medicalIdRecord = await MedicalID.findOne({ userId: req.user.id });
+    const targetUserId = req.user.role === 'RESPONDER' ? req.params.userId : req.user.id;
+    const medicalIdRecord = await MedicalID.findOne({ userId: targetUserId });
 
     if (!medicalIdRecord) {
-      // Return a blank one
       return res.status(200).json({
-        userId: req.user.id,
+        userId: targetUserId,
         bloodGroup: '',
         allergies: [],
         medications: [],
@@ -33,11 +31,12 @@ exports.getMedicalId = async (req, res) => {
 exports.updateMedicalId = async (req, res) => {
   try {
     const { bloodGroup, allergies, medications, emergencyContacts } = req.body;
+    const targetUserId = req.user.role === 'RESPONDER' ? req.params.userId : req.user.id;
 
-    let medicalIdRecord = await MedicalID.findOne({ userId: req.user.id });
+    let medicalIdRecord = await MedicalID.findOne({ userId: targetUserId });
 
     if (!medicalIdRecord) {
-      medicalIdRecord = new MedicalID({ userId: req.user.id });
+      medicalIdRecord = new MedicalID({ userId: targetUserId });
     }
 
     medicalIdRecord.bloodGroup = bloodGroup ?? medicalIdRecord.bloodGroup;

@@ -35,6 +35,7 @@ const ConfirmationScreen = ({ navigation, route }: any) => {
       case 'MEDICAL':
         return { name: 'Ambulance', icon: 'medical-services', color: '#76daa3', tag: '🚑 MEDICAL' };
       case 'POLICE':
+      case 'CRIME':
         return { name: 'Police Station', icon: 'local-police', color: '#64748b', tag: '👮 POLICE' };
       default:
         return { name: 'Emergency Services', icon: 'shield', color: '#ffb3ac', tag: '🚨 ALERT' };

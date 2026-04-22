@@ -1,4 +1,5 @@
 const Incident = require('../models/Incident');
+const User = require('../models/User');
 
 // @desc    Get logged in user incidents
 // @route   GET /api/incidents
@@ -130,8 +131,8 @@ exports.notifyReporter = async (req, res) => {
       return res.status(400).json({ error: 'User phone number not found' });
     }
 
-    // Get responder info
-    const responderName = req.user.name || 'A Responder';
+    const responder = await User.findById(req.user.id).select('name');
+    const responderName = responder?.name || 'A Responder';
     
     // Send SMS notification
     const { sendSMS } = require('../utils/twilioUtils');

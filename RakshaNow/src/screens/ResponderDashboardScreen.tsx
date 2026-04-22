@@ -155,6 +155,7 @@ const getTypeIcon = (type?: string) => {
     case 'MEDICAL':
       return 'medical-services';
     case 'POLICE':
+    case 'CRIME':
       return 'local-police';
     case 'ACCIDENT':
       return 'directions-car';
