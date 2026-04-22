@@ -6,6 +6,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SplashScreen from './src/screens/SplashScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
+
 import DrawerNavigator from './src/navigation/DrawerNavigator';
 import ReportSelectionScreen from './src/screens/ReportSelectionScreen';
 import ReportEmergencyScreen from './src/screens/ReportEmergencyScreen';
@@ -14,6 +15,7 @@ import ConfirmationScreen from './src/screens/ConfirmationScreen';
 import MyReportsScreen from './src/screens/MyReportsScreen';
 import ResponderDashboardScreen from './src/screens/ResponderDashboardScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
+import ProfileUpdateScreen from './src/screens/ProfileUpdateScreen';
 import AlertsScreen from './src/screens/AlertsScreen';
 import EmergencyContactsScreen from './src/screens/Profile/EmergencyContectScreen';
 import MedicalIDScreen from './src/screens/Profile/MedicalIDScreen';
@@ -78,7 +80,6 @@ const App = () => {
               headerShown: false,
             }}
           />
-
           <Stack.Screen
             name="Home"
             component={DrawerNavigator}
@@ -140,6 +141,11 @@ const App = () => {
             }}
           />
           <Stack.Screen
+            name="Update Profile"
+            component={ProfileUpdateScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
             name="MedicalID"
             component={MedicalIDScreen}
             options={{
@@ -177,3 +183,5 @@ const App = () => {
 };
 
 export default App;
+
+

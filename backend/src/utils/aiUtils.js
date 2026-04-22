@@ -1,52 +1,44 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const analyzeEmergency = async (description) => {
+  const apiKey = process.env.GEMINI_API_KEY;
+  
+  console.log("🤖 [AI] Checking API key...");
+  
+  if (!apiKey) {
+    console.warn("🤖 [AI] GEMINI_API_KEY not set in .env!");
+    return { classification: "UNKNOWN", summary: description };
+  }
+
+  console.log(`🤖 [AI] API Key found: ${apiKey.substring(0, 10)}...`);
+  
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    console.log(`🤖 [AI] Initializing Gemini with description: "${description}"`);
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
 
-    // Using gemini-1.5-flash for fast and stable classification
-    const model = genAI.getGenerativeModel({
-      model: "gemini-3-flash-preview"
-    });
+    const prompt = `Classify this emergency: "${description || 'emergency'}"
 
-    const prompt = `
-You are a tactical AI dispatcher for RakshaNow.
+Choose: MEDICAL, FIRE, POLICE, CRIME, UNKNOWN
 
-Emergency report: "${description || 'No description provided'}"
+JSON: {"classification": "MEDICAL|FIRE|POLICE|CRIME|UNKNOWN", "summary": "brief"}`;
 
-Classify it strictly into one of:
-MEDICAL, FIRE, POLICE, UNKNOWN
-
-Respond ONLY in valid JSON:
-{
-  "classification": "MEDICAL",
-  "summary": "short summary"
-}
-`;
-
+    console.log("🤖 [AI] Calling Gemini API...");
     const result = await model.generateContent(prompt);
-    let text = result.response.text();
+    const text = result.response.text().trim();
+    console.log("🤖 [AI] Raw response:", text);
 
-    // Clean markdown if exists
-    text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-
-    // Safe parse
-    try {
-      return JSON.parse(text);
-    } catch (e) {
-      console.error("JSON Parse failed for AI response:", text);
-      return {
-        classification: "UNKNOWN",
-        summary: description || "Parsing failed"
-      };
-    }
-
-  } catch (error) {
-    console.error("AI Analysis Failed:", error.message);
+    const cleaned = text.replace(/```json/g, '').replace(/```/g, '').replace(/`/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+    
+    console.log("🤖 [AI] Parsed:", parsed);
     return {
-      classification: "UNKNOWN",
-      summary: description || "Direct SOS Triggered"
+      classification: parsed.classification || "UNKNOWN",
+      summary: parsed.summary || description
     };
+  } catch (error) {
+    console.error("🤖 [AI] ERROR:", error.message);
+    return { classification: "UNKNOWN", summary: description };
   }
 };
 

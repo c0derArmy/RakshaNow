@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
-const { updateProfilePic } = require('../controllers/userController');
+const { updateProfilePic, updateProfile, updateLiveLocation, getLiveLocation } = require('../controllers/userController');
 const User = require('../models/User');
 
 // Test route for connectivity
@@ -36,5 +36,20 @@ router.put('/profile-pic', protect, (req, res, next) => {
     next();
   });
 }, updateProfilePic);
+
+// @route   PUT api/users/profile
+// @desc    Update user profile
+// @access  Private
+router.put('/profile', protect, updateProfile);
+
+// @route   PUT api/users/location
+// @desc    Update user's live location
+// @access  Private
+router.put('/location', protect, updateLiveLocation);
+
+// @route   GET api/users/:id/location
+// @desc    Get user's live location
+// @access  Private
+router.get('/:id/location', protect, getLiveLocation);
 
 module.exports = router;

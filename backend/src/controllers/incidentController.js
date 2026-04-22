@@ -82,20 +82,34 @@ exports.createIncident = async (req, res) => {
 exports.updateIncidentStatus = async (req, res) => {
   try {
     const { status } = req.body;
-    const incident = await Incident.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true }
-    );
-    
-    if (!incident) {
-      return res.status(404).json({ error: 'Incident not found' });
+
+    console.log(`>>> [${new Date().toLocaleTimeString()}] UPDATE STATUS REQUEST:`, {
+      incidentId: req.params.id,
+      newStatus: status,
+      body: req.body
+    });
+
+    if (!status) {
+      return res.status(400).json({ message: 'Status is required' });
     }
-    
+
+    const incident = await Incident.findById(req.params.id);
+
+    if (!incident) {
+      console.log(`>>> INCIDENT NOT FOUND: ${req.params.id}`);
+      return res.status(404).json({ message: 'Incident not found' });
+    }
+
+    console.log(`>>> Current incident status: ${incident.status}, new status: ${status}`);
+
+    incident.status = status;
+    await incident.save();
+
+    console.log(`>>> SUCCESS: Status updated to: ${incident.status}`);
     res.status(200).json(incident);
   } catch (error) {
     console.error("Update Incident Error:", error);
-    res.status(500).json({ error: 'Failed to update incident' });
+    res.status(500).json({ message: 'Failed to update incident' });
   }
 };
 

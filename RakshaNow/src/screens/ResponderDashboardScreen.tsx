@@ -17,8 +17,9 @@ import {
   Modal,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialIcons';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store';
+import { getLiveLocation } from '../store/slices/userSlice';
 import axiosClient from '../utils/axiosClient';
 import { useTheme } from '../utils/theme';
 
@@ -91,6 +92,7 @@ interface CitizenIncident {
   reportedAt?: string;
   userName?: string;
   userPhone?: string;
+  userId?: string;
 }
 
 const getStatusColor = (status?: string) => {
@@ -176,6 +178,7 @@ const formatTime = (dateString?: string) => {
 };
 
 const ResponderDashboardScreen = ({ navigation }: any) => {
+  const dispatch = useDispatch();
   const user = useSelector((state: RootState) => state.user.user);
   const { theme, isDark } = useTheme();
 
@@ -247,27 +250,35 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
     }
   };
 
-  const handleNavigate = (incident: CitizenIncident) => {
-    const address = incident.location?.address || incident.landmark || '';
-    const lat = incident.location?.lat;
-    const lng = incident.location?.lng;
+  const handleNavigate = async (incident: CitizenIncident) => {
+    let lat = incident.location?.lat;
+    let lng = incident.location?.lng;
     
-    if (lat && lng) {
-      // Open Google Maps app directly
-      Linking.openURL(`google.navigation:q=${lat},${lng}&mode=d`).catch(() => {
-        // Fallback to Apple Maps on iOS
-        if (Platform.OS === 'ios') {
-          Linking.openURL(`http://maps.apple.com/?daddr=${lat},${lng}&dirflg=d`);
-        } else {
-          // Web fallback
-          Linking.openURL(`https://www.google.com/maps/dir/${lat},${lng}`);
+    if (incident.userId) {
+      try {
+        const locationData: any = await dispatch(getLiveLocation(incident.userId));
+        if (locationData?.lat && locationData?.lng) {
+          lat = locationData.lat;
+          lng = locationData.lng;
         }
-      });
-    } else if (address) {
-      Linking.openURL(`https://www.google.com/maps/search/${encodeURIComponent(address)}`);
-    } else {
-      Alert.alert('No Location', 'No location data available for this incident.');
+      } catch (error) {
+        console.log('Could not fetch live location, using static:', error);
+      }
     }
+    
+    if (!lat || !lng) {
+      const address = incident.location?.address || incident.landmark || '';
+      if (address) {
+        Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`);
+      } else {
+        Alert.alert('No Location', 'No location data available for this incident.');
+      }
+      return;
+    }
+    
+    Linking.openURL(`google.navigation:q=${lat},${lng}&mode=d`).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/dir/${lat},${lng}`);
+    });
   };
 
   const handleRespond = async (incident: CitizenIncident) => {
@@ -280,13 +291,20 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
           text: 'Accept',
           onPress: async () => {
             try {
-              await axiosClient.put(`/incidents/${incident._id}`, { status: 'DISPATCHED' });
-              await axiosClient.post(`/incidents/${incident._id}/notify`);
+              const response = await axiosClient.put(`/incidents/${incident._id}`, { 
+                status: 'DISPATCHED' 
+              });
+              
+              if (response.data) {
+                await axiosClient.post(`/incidents/${incident._id}/notify`);
+              }
+              
               Alert.alert('Assigned', 'You have accepted this case. The reporter has been notified.');
               loadIncidents();
             } catch (error: any) {
               console.error('Respond error:', error);
-              Alert.alert('Error', 'Failed to accept case. Please try again.');
+              const errorMsg = error?.response?.data?.message || error?.response?.data?.error || 'Failed to accept case';
+              Alert.alert('Error', errorMsg);
             }
           },
         },
@@ -304,12 +322,14 @@ const ResponderDashboardScreen = ({ navigation }: any) => {
           text: 'Resolve',
           onPress: async () => {
             try {
-              await axiosClient.put(`/incidents/${incident._id}`, { status: 'RESOLVED' });
+              console.log('Resolving incident:', incident._id, 'status: RESOLVED');
+              const response = await axiosClient.put(`/incidents/${incident._id}`, { status: 'RESOLVED' });
+              console.log('Resolve response:', response.data);
               Alert.alert('Resolved', 'Incident marked as resolved.');
               loadIncidents();
             } catch (error: any) {
-              console.error('Resolve error:', error);
-              Alert.alert('Error', 'Failed to resolve incident. Please try again.');
+              console.error('Resolve error:', error.response?.data || error.message);
+              Alert.alert('Error', error.response?.data?.message || 'Failed to resolve incident. Please try again.');
             }
           },
         },

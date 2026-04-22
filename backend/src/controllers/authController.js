@@ -9,52 +9,36 @@ exports.registerUser = async (req, res) => {
     console.log(`>>> [${new Date().toLocaleTimeString()}] REGISTRATION REQUEST:`, { ...req.body, password: '***' });
     const { name, phone, email, password } = req.body;
 
-    // ==========================================
-    // 🛡️ PASSWORD VALIDATION (Relaxed for development)
-    // ==========================================
-    const passwordRegex = /^.{6,}$/;
-
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({
-        message: "Weak Password",
-        details: "Password must be at least 6 characters long.",
-      });
+    if (!password || password.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters" });
     }
 
-    // ==========================================
-    // 🛡️ CHECK USER EXISTS (PHONE OR EMAIL)
-    // ==========================================
-    let user = await User.findOne({
-      $or: [{ phone }, { email }],
+    const cleanPhone = phone ? phone.replace(/\D/g, "") : null;
+
+    const existingUser = await User.findOne({
+      $or: [
+        { phone: cleanPhone },
+        { email: email?.toLowerCase() }
+      ].filter(Boolean)
     });
 
-    if (user) {
-      return res.status(400).json({
-        message: "User already exists with this phone or email",
-      });
+    if (existingUser) {
+      return res.status(400).json({ message: "User already exists with this phone or email" });
     }
 
-    // ==========================================
-    // HASH PASSWORD
-    // ==========================================
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // ==========================================
-    // CREATE USER WITH EMAIL
-    // ==========================================
-    user = await User.create({
+    const user = await User.create({
       name,
-      phone,
-      email,
+      phone: cleanPhone,
+      email: email?.toLowerCase(),
       password: hashedPassword,
-      role: req.body.role || 'CITIZEN',
+      role: req.body.role || 'CITIZEN'
     });
 
-    // Auto-create Medical ID
     await MedicalID.create({ userId: user._id });
 
-    // JWT TOKEN
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -68,7 +52,9 @@ exports.registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         phone: user.phone,
+        role: user.role
       },
+      message: "Registration successful!"
     });
 
   } catch (error) {
@@ -81,14 +67,36 @@ exports.loginUser = async (req, res) => {
   try {
     console.log(`>>> [${new Date().toLocaleTimeString()}] LOGIN REQUEST:`, { phone: req.body.phone });
     const { phone, password } = req.body;
-    const user = await User.findOne({ phone });
-    if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+
+    const cleanPhone = phone.replace(/\D/g, "");
+    const user = await User.findOne({ phone: cleanPhone });
+
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
+    if (!isMatch) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' });
-    res.status(200).json({ token, user: { id: user._id, name: user.name, phone: user.phone, email: user.email, role: user.role } });
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.status(200).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        phone: user.phone,
+        email: user.email,
+        role: user.role,
+        profilePic: user.profilePic
+      }
+    });
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ error: 'Login failed' });
@@ -104,9 +112,6 @@ exports.logoutUser = async (req, res) => {
   }
 };
 
-
-
-
 exports.googleLogin = async (req, res) => {
   try {
     const { idToken } = req.body;
@@ -115,29 +120,23 @@ exports.googleLogin = async (req, res) => {
       return res.status(400).json({ message: "ID Token required" });
     }
 
-    // verify firebase token
     const decodedToken = await admin.auth().verifyIdToken(idToken);
-
     const { uid, email, name, picture } = decodedToken;
 
-    // check user exists
     let user = await User.findOne({ email });
 
-    // if not exists → create
     if (!user) {
       user = await User.create({
         name: name,
         email: email,
         googleId: uid,
         profilePic: picture,
-        role: 'CITIZEN' // Default for Google Login
+        role: 'CITIZEN'
       });
 
-      // ✅ Auto-create Medical ID for Google User
       await MedicalID.create({ userId: user._id });
     }
 
-    // generate JWT
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
@@ -160,4 +159,68 @@ exports.googleLogin = async (req, res) => {
     console.error("Google Login Error:", error);
     res.status(500).json({ error: "Google login failed" });
   }
+};
+
+exports.checkPhone = async (req, res) => {
+  try {
+    const { phone } = req.body;
+    const cleanPhone = phone ? phone.replace(/\D/g, "") : "";
+
+    if (!cleanPhone) {
+      return res.status(400).json({ message: "Phone number required" });
+    }
+
+    const existingUser = await User.findOne({ phone: cleanPhone });
+    if (existingUser) {
+      return res.status(400).json({ message: "Phone number already registered", available: false });
+    }
+
+    res.status(200).json({ available: true });
+  } catch (error) {
+    res.status(500).json({ error: "Check failed" });
+  }
+};
+
+exports.sendPhoneOTP = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.verifyPhoneOTP = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.sendEmailOTP = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.verifyEmailOTP = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.resendOTP = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.verifyBothOTP = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.sendOTP = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.verifyOTP = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.registerWithVerified = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.googleAddPhone = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
+};
+
+exports.verifyGooglePhone = async (req, res) => {
+  res.status(501).json({ message: "OTP service not enabled" });
 };

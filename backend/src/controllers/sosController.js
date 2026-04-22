@@ -2,20 +2,26 @@ const Incident = require('../models/Incident');
 const User = require('../models/User');
 const MedicalID = require('../models/MedicalID');
 const { analyzeEmergency } = require('../utils/aiUtils');
-const { dispatchEmergencyCalls, sendEmergencySMS } = require('../utils/twilioUtils');
+const { sendEmergencySMS, dispatchEmergencyCalls } = require('../utils/twilioUtils');
 
 exports.triggerSOS = async (req, res) => {
   try {
-    const { description, location } = req.body;
-    const userId = req.user.id; // Securely extracted from JWT
+    console.log(`>>> [${new Date().toLocaleTimeString()}] SOS TRIGGERED`);
+    const { description, location, userName, userPhone, userEmail } = req.body;
+    const userId = req.user.id;
+    console.log(`>>> User ID: ${userId}, Description: ${description}`);
 
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // 1. AI Classification
-    const aiAnalysis = await analyzeEmergency(description);
+    const name = userName || user.name;
+    const phone = userPhone || user.phone;
+    const email = userEmail || user.email;
 
-    // 2. Save Incident
+    console.log(`>>> Calling AI for: "${description}"`);
+    const aiAnalysis = await analyzeEmergency(description);
+    console.log(`>>> AI Result:`, aiAnalysis);
+
     const newIncident = await Incident.create({
       userId: user._id,
       type: aiAnalysis.classification,
@@ -23,51 +29,64 @@ exports.triggerSOS = async (req, res) => {
       location: location
     });
 
-    // 3. Fetch Medical ID for Emergency Contacts
     const medicalInfo = await MedicalID.findOne({ userId: user._id });
     const emergencyContacts = medicalInfo?.emergencyContacts || [];
 
-    // 4. Trigger Emergency Calls and SMS to all contacts
+    const allergies = medicalInfo?.allergies?.length > 0
+      ? medicalInfo.allergies.join(', ')
+      : '';
+    const bloodGroup = medicalInfo?.bloodGroup || '';
+    const medications = medicalInfo?.medications?.length > 0
+      ? medicalInfo.medications.join(', ')
+      : '';
+
+    const medicalText = [
+      bloodGroup ? `Blood Group: ${bloodGroup}` : '',
+      allergies ? `Allergies: ${allergies}` : '',
+      medications ? `Medications: ${medications}` : ''
+    ].filter(Boolean).join(' | ');
+
     if (emergencyContacts.length > 0) {
-      // Make emergency calls to contacts
-      dispatchEmergencyCalls(
-        emergencyContacts, 
-        user.name, 
-        user.phone, 
-        location, 
-        aiAnalysis.classification
+      await sendEmergencySMS(
+        emergencyContacts,
+        name,
+        phone,
+        email,
+        location,
+        aiAnalysis.classification,
+        aiAnalysis.summary,
+        medicalText
       );
-      
-      // Send emergency SMS to contacts
-      sendEmergencySMS(
-        emergencyContacts, 
-        user.name, 
-        user.phone, 
-        location, 
-        aiAnalysis.classification
+
+      await dispatchEmergencyCalls(
+        emergencyContacts,
+        name,
+        phone,
+        location,
+        aiAnalysis.classification,
+        aiAnalysis.summary,
+        medicalText
       );
     }
 
-    // 5. Also send SMS to user's own phone
-    if (user.phone) {
-      const userMessage = `🚨 RAKSHANOW ALERT 🚨\n\nYour SOS has been triggered.\nEmergency contacts have been notified.\nStay calm and stay safe. Help is on the way!`;
-      const { sendSMS } = require('../utils/twilioUtils');
-      sendSMS(user.phone, userMessage);
-    }
-
-    res.status(200).json({ 
-      success: true, 
-      message: 'SOS Dispatched', 
-      incident: newIncident,
+    console.log(`>>> SOS Created - Type: ${newIncident.type}, Transcript: ${newIncident.transcript}`);
+    
+    res.status(200).json({
+      success: true,
+      message: 'SOS Dispatched',
+      incident: {
+        _id: newIncident._id,
+        type: newIncident.type,
+        transcript: newIncident.transcript,
+        status: newIncident.status,
+        location: newIncident.location,
+        createdAt: newIncident.createdAt
+      },
       contactsNotified: emergencyContacts.length
     });
   } catch (error) {
-    console.error("🚨 CRITICAL SOS ERROR:", {
-      message: error.message,
-      stack: error.stack,
-      body: req.body
-    });
-    res.status(500).json({ 
+    console.error("SOS ERROR:", error.message);
+    res.status(500).json({
       error: 'Failed to process SOS',
       details: error.message
     });

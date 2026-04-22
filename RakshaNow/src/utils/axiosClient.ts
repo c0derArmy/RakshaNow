@@ -53,7 +53,7 @@ export const setAuthToken = async (token: string | null) => {
 // Local: "http://172.16.19.69:5000/api"
 // Cloud: "https://your-cloud-url.com/api"
 const axiosClient = axios.create({
-  baseURL: "http://172.16.19.69:5000/api",
+  baseURL: "http://10.115.15.129:5000/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -65,7 +65,7 @@ axiosClient.interceptors.request.use(
     // Always get fresh token from storage
     const token = await AsyncStorage.getItem('@raksha_token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.set('Authorization', `Bearer ${token}`);
     }
     return config;
   },

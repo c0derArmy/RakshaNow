@@ -24,9 +24,13 @@ import { useTheme } from '../utils/theme';
 
 const STATUSBAR_HEIGHT = Platform.OS === 'android' ? StatusBar.currentHeight || 0 : 0;
 
+import { useSelector } from 'react-redux';
+import { RootState } from '../store';
+
 const ReportEmergencyScreen = ({ navigation }: any) => {
   const dispatch = useDispatch<AppDispatch>();
   const { theme, isDark } = useTheme();
+  const user = useSelector((state: RootState) => state.user.user);
   const [incidentText, setIncidentText] = useState('');
   const [landmark, setLandmark] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -151,7 +155,8 @@ const ReportEmergencyScreen = ({ navigation }: any) => {
               try {
                 const incident = await dispatch(triggerTacticalSOS(
                   `${incidentText.trim()} ${landmark ? '(Near ' + landmark.trim() + ')' : ''}`,
-                  location
+                  location,
+                  { name: user?.name, phone: user?.phone, email: user?.email }
                 ));
                 navigation.replace('Confirmation', { incident });
               } catch (error) {

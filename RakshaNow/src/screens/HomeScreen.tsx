@@ -17,6 +17,8 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState, AppDispatch } from '../store';
 import { triggerTacticalSOS } from '../store/slices/incidentSlice';
+import { updateLiveLocation } from '../store/slices/userSlice';
+import Geolocation from '@react-native-community/geolocation';
 import { Alert } from 'react-native';
 import { LocationService } from '../utils/locationUtils';
 import { useTheme } from '../utils/theme';
@@ -48,19 +50,46 @@ const HomeScreen = ({ navigation }: any) => {
     checkGpsStatus();
   }, []);
 
-  const checkGpsStatus = async () => {
+    const checkGpsStatus = async () => {
     try {
-      const hasPermission = await LocationService.requestPermission();
-      if (hasPermission) {
-        await LocationService.getCurrentPosition();
-        setGpsActive(true);
-      } else {
+      const gpsEnabled = await LocationService.isLocationEnabled();
+      if (!gpsEnabled) {
         setGpsActive(false);
+        LocationService.showEnableGpsAlert();
+        return;
       }
+      const hasPermission = await LocationService.requestPermission();
+      if (!hasPermission) {
+        setGpsActive(false);
+        return;
+      }
+      await LocationService.getCurrentPosition();
+      setGpsActive(true);
     } catch (e) {
       setGpsActive(false);
     }
   };
+
+  React.useEffect(() => {
+    const sendLocation = () => {
+      try {
+        Geolocation.getCurrentPosition(
+          (position) => {
+            dispatch(updateLiveLocation({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            }));
+          },
+          (error) => console.log('Location error:', error),
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+      } catch (error) {
+        console.log('Location error:', error);
+      }
+    };
+    
+    sendLocation();
+  }, [dispatch]);
 
   const handleSosPressIn = () => {
     setSosPressed(true);
@@ -93,7 +122,11 @@ const HomeScreen = ({ navigation }: any) => {
           text: 'CONFIRM', 
           onPress: async () => {
             try {
-              const incident = await dispatch(triggerTacticalSOS("QUICK SOS: IMMEDIATE ASSISTANCE REQUIRED", location));
+              const incident = await dispatch(triggerTacticalSOS(
+                "QUICK SOS: IMMEDIATE ASSISTANCE REQUIRED",
+                location,
+                { name: user?.name, phone: user?.phone, email: user?.email }
+              ));
               navigation.navigate('Confirmation', { incident });
             } catch (error) {
               Alert.alert('Error', 'Failed to trigger Quick SOS');

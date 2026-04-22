@@ -61,8 +61,9 @@ export const fetchIncidents = () => async (dispatch: AppDispatch) => {
 
 export const fetchMyIncidents = () => async (dispatch: AppDispatch) => {
   try {
-    const response = await axiosClient.get('/incidents/my');
-    dispatch(setIncidents(response.data));
+    const response = await axiosClient.get('/incidents');
+    const data = response.data?.incidents || response.data || [];
+    dispatch(setIncidents(data));
   } catch (error) {
     console.error('Failed to fetch my incidents:', error);
   }
@@ -70,7 +71,7 @@ export const fetchMyIncidents = () => async (dispatch: AppDispatch) => {
 
 export const fetchResponderIncidents = () => async (dispatch: AppDispatch) => {
   try {
-    const response = await axiosClient.get('/incidents/responder');
+    const response = await axiosClient.get('/incidents/all');
     dispatch(setIncidents(response.data));
   } catch (error) {
     console.error('Failed to fetch responder incidents:', error);
@@ -88,13 +89,15 @@ export const addNewIncident = (incident: Incident) => async (dispatch: AppDispat
   }
 };
 
-export const triggerTacticalSOS = (description: string, location?: any) => async (dispatch: AppDispatch) => {
+export const triggerTacticalSOS = (description: string, location?: any, userInfo?: any) => async (dispatch: AppDispatch) => {
   try {
     const response = await axiosClient.post('/sos/trigger', {
       description,
-      location: location // Use provided location or let backend handle null
+      location: location,
+      userName: userInfo?.name || '',
+      userPhone: userInfo?.phone || '',
+      userEmail: userInfo?.email || '',
     });
-    // The tactical SOS also stores an incident in the backend
     if (response.data.incident) {
       dispatch(addIncident(response.data.incident));
     }

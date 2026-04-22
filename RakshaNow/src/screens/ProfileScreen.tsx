@@ -345,6 +345,34 @@ const ProfileScreen = ({ navigation }: any) => {
 
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => navigation.navigate("Update Profile")}
+          >
+            <View style={styles.menuIconWrapper}>
+              <Icon
+                name="edit"
+                size={20}
+                color="#ffb3ac"
+              />
+            </View>
+
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>
+                Update Profile
+              </Text>
+              <Text style={styles.menuSubtitle}>
+                Edit your details
+              </Text>
+            </View>
+
+            <Icon
+              name="chevron-right"
+              size={24}
+              color="#64748b"
+            />
+          </TouchableOpacity>
+
 <TouchableOpacity
             style={styles.menuItem}
             onPress={handleThemeToggle}
@@ -385,7 +413,7 @@ const ProfileScreen = ({ navigation }: any) => {
 
             <Icon
               name="logout"
-              size={20}
+              size={18}
               color="#ffb3ac"
             />
 
@@ -614,9 +642,9 @@ const styles = StyleSheet.create({
   menuTextContainer:{ flex:1 },
   menuTitle:{ fontSize:16, fontWeight:"700", color:"#d6e4f9" },
   menuSubtitle:{ fontSize:12, color:"#94a3b8" },
-  logoutContainer:{ marginTop:16 },
-  logoutButton:{ flexDirection:"row", alignItems:"center", justifyContent:"center", padding:16, borderRadius:16, borderWidth:1, borderColor:"rgba(211,47,47,0.4)", backgroundColor:"rgba(211,47,47,0.05)", gap:8 },
-  logoutText:{ color:"#ffb3ac", fontSize:14, fontWeight:"800" },
+  logoutContainer:{ marginTop:8, marginBottom: 80 },
+  logoutButton:{ flexDirection:"row", alignItems:"center", justifyContent:"center", paddingVertical:10, paddingHorizontal:16, borderRadius:10, borderWidth:1, borderColor:"rgba(211,47,47,0.4)", backgroundColor:"rgba(211,47,47,0.05)", gap:6 },
+  logoutText:{ color:"#ffb3ac", fontSize:12, fontWeight:"700" },
   bottomNav:{ position:"absolute", bottom:0, left:0, right:0, height:70, backgroundColor:"#132030", flexDirection:"row", justifyContent:"space-around", alignItems:"center" },
   navItem:{ alignItems:"center" },
   navItemActive:{ backgroundColor:"#1e2b3b", padding:8, borderRadius:12 },

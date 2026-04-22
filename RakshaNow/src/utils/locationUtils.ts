@@ -1,4 +1,4 @@
-import { PermissionsAndroid, Platform } from 'react-native';
+import { PermissionsAndroid, Platform, Alert, Linking } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 
 export interface LocationData {
@@ -80,4 +80,27 @@ export const LocationService = {
       return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
     }
   },
+  async isLocationEnabled(): Promise<boolean> {
+    return new Promise((resolve) => {
+      Geolocation.getCurrentPosition(
+        () => resolve(true),
+        (error) => {
+          if (error.code === 1) resolve(false);
+          else resolve(true);
+        },
+        { enableHighAccuracy: false, timeout: 5000 }
+      );
+    });
+  },
+  showEnableGpsAlert(): void {
+    Alert.alert(
+      'GPS Disabled',
+      'Please enable GPS in your device settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Open Settings', onPress: () => Linking.openSettings() }
+      ]
+    );
+  }
 };
+

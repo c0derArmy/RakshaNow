@@ -24,7 +24,8 @@ const ConfirmationScreen = ({ navigation, route }: any) => {
   const incidentId = incident?._id ? `#RN${incident._id.slice(-6).toUpperCase()}` : '#RN2025001';
   const type = (incident?.type || 'UNKNOWN').toUpperCase();
   const status = (incident?.status || 'CRITICAL').toUpperCase();
-  const summary = incident?.desc || incident?.transcript || 'Your emergency report has been shared with the rapid response team.';
+  const transcript = incident?.transcript || incident?.desc || 'Emergency reported';
+  const summary = transcript.length > 50 ? transcript.substring(0, 50) + '...' : transcript;
 
   // Map type to icons and services
   const getServiceInfo = (incidentType: string) => {

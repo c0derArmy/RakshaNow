@@ -64,8 +64,8 @@ export const registerUser = (userData: { name: string; phone: string; email: str
     const response = await axiosClient.post('/auth/register', payload);
     dispatch(setUser(response.data));
     return response.data;
-  } catch (error) {
-    console.error('Registration failed:', error);
+  } catch (error: any) {
+    console.error('Registration failed:', error.response?.data || error.message);
     throw error;
   }
 };
@@ -107,9 +107,7 @@ export const updateProfilePic = (imageData: any) => async (dispatch: AppDispatch
     } as any);
 
     const response = await axiosClient.put('/users/profile-pic', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
 
     const { user } = response.data;
@@ -118,7 +116,52 @@ export const updateProfilePic = (imageData: any) => async (dispatch: AppDispatch
     }
     return response.data;
   } catch (error: any) {
-    console.log('🔴 UPLOAD ERROR:', error.response?.data || error.message);
+    console.log('UPLOAD ERROR:', error.response?.data || error.message);
     throw new Error(error.response?.data?.message || error.message || 'Upload failed');
+  }
+};
+
+export const updateProfile = (profileData: { name?: string; phone?: string; email?: string }) => async (dispatch: AppDispatch, getState: () => any) => {
+  try {
+    const currentState = getState().user.user;
+    const token = currentState?.token;
+    if (!token) throw new Error("No authentication token found. Please log in again.");
+
+    const response = await axiosClient.put('/users/profile', profileData);
+    dispatch(setUser({ token: token, user: { ...currentState, ...profileData } }));
+    return response.data;
+  } catch (error: any) {
+    console.log('UPDATE PROFILE ERROR:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};
+
+export const checkPhoneAvailable = (phone: string) => async (dispatch: AppDispatch) => {
+  try {
+    const response = await axiosClient.post('/auth/check-phone', { phone });
+    return response.data;
+  } catch (error: any) {
+    console.log('CHECK PHONE ERROR:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};
+
+export const updateLiveLocation = ({ lat, lng }: { lat: number; lng: number }) => async (dispatch: AppDispatch) => {
+  try {
+    const response = await axiosClient.put('/users/location', { lat, lng });
+    return response.data;
+  } catch (error: any) {
+    console.log('UPDATE LOCATION ERROR:', error.response?.data || error.message);
+    throw error.response?.data || error;
+  }
+};
+
+export const getLiveLocation = (userId: string) => async (dispatch: AppDispatch) => {
+  try {
+    const response = await axiosClient.get(`/users/${userId}/location`);
+    return response.data;
+  } catch (error: any) {
+    console.log('GET LOCATION ERROR:', error.response?.data || error.message);
+    throw error.response?.data || error;
   }
 };
