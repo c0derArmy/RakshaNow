@@ -2,6 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import axiosClient, { setAuthToken } from '../../utils/axiosClient';
 import { AppDispatch } from '../index';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import { getAuth, signOut as firebaseSignOut } from '@react-native-firebase/auth';
 
 interface UserState {
   user: any | null;
@@ -73,9 +75,28 @@ export const registerUser = (userData: { name: string; phone: string; email: str
 export const logoutUser = () => async (dispatch: AppDispatch) => {
   try {
     await axiosClient.post('/auth/logout');
-    dispatch(setUser(null));
   } catch (error) {
     console.error('Logout failed:', error);
+  } finally {
+    try {
+      await GoogleSignin.signOut();
+    } catch (error) {
+      console.log('Google sign out skipped:', error);
+    }
+
+    try {
+      await GoogleSignin.revokeAccess();
+    } catch (error) {
+      console.log('Google revoke access skipped:', error);
+    }
+
+    try {
+      await firebaseSignOut(getAuth());
+    } catch (error) {
+      console.log('Firebase sign out skipped:', error);
+    }
+
+    dispatch(setUser(null));
   }
 };
 

@@ -101,7 +101,7 @@ const LoginScreen = ({ navigation }: any) => {
 
 
 
-  const signInWithGoogle = async () => {
+const signInWithGoogle = async () => {
     if (loading) {
       return;
     }
@@ -135,7 +135,7 @@ const LoginScreen = ({ navigation }: any) => {
         throw new Error('Firebase auth token not found');
       }
 
-const googleResult: any = await dispatch(googleLogin(firebaseToken));
+      const googleResult: any = await dispatch(googleLogin(firebaseToken));
 
       setLoading(false);
 

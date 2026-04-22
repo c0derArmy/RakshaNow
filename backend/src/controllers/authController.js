@@ -126,15 +126,30 @@ exports.googleLogin = async (req, res) => {
     let user = await User.findOne({ email });
 
     if (!user) {
-      user = await User.create({
-        name: name,
-        email: email,
-        googleId: uid,
-        profilePic: picture,
-        role: 'CITIZEN'
-      });
+      user = await User.findOne({ googleId: uid });
+    }
 
-      await MedicalID.create({ userId: user._id });
+    if (!user) {
+      const existingUserWithNullPhone = await User.findOne({ phone: { $in: [null, ''] } });
+      
+      if (existingUserWithNullPhone) {
+        existingUserWithNullPhone.name = name;
+        existingUserWithNullPhone.email = email;
+        existingUserWithNullPhone.googleId = uid;
+        existingUserWithNullPhone.profilePic = picture;
+        await existingUserWithNullPhone.save();
+        user = existingUserWithNullPhone;
+      } else {
+        const newUser = new User({
+          name: name,
+          email: email,
+          googleId: uid,
+          profilePic: picture,
+          role: 'CITIZEN'
+        });
+        user = await newUser.save();
+        await MedicalID.create({ userId: user._id });
+      }
     }
 
     const token = jwt.sign(
