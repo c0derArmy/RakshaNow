@@ -51,7 +51,6 @@ npm run dev
 **Frontend:**
 ```bash
 cd RakshaNow
-npm install
 npx react-native run-android
 ```
 
